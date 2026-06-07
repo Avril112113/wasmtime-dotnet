@@ -1,0 +1,7 @@
+.vscode
+wasmtime-v*
+wasmtime
+xml
+
+NativeWasmtime.g.cs
+NativeWasmtime.g.g.cs
