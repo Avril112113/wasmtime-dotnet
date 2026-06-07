@@ -492,6 +492,8 @@ namespace Wasmtime
         /// <param name="context"></param>
         internal static WasmException FromTrapAndException(StoreContext context, IntPtr trap, IntPtr exn)
         {
+            Console.WriteLine($"Creating exception from trap: {trap}");
+            
             using var accessor = new TrapAccessor(trap);
 
             var values = new Dictionary<nuint, object?>();

@@ -720,7 +720,9 @@ namespace Wasmtime
             try
             {
                 if (ex is WasmException wex) {
-                    return Native.wasmtime_context_set_exception(caller.context.handle, wex.Exn);
+                    var trap = Native.wasmtime_context_set_exception(caller.context.handle, wex.Exn);
+                    Console.WriteLine($"Throwing trap: {trap}");
+                    return trap;
                 }
 
                 // Store the exception as error cause, so that we can use it as the WasmtimeException's

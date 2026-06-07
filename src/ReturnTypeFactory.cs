@@ -150,6 +150,8 @@ namespace Wasmtime
         {
             if (trap != IntPtr.Zero)
             {
+                if (Function.Native.wasmtime_context_take_exception(store.Context.handle, out var exception))
+                    throw WasmException.FromTrapAndException(store.Context, trap, exception);
                 throw TrapException.FromOwnedTrap(trap);
             }
 
@@ -203,6 +205,8 @@ namespace Wasmtime
         {
             if (trap != IntPtr.Zero)
             {
+                if (Function.Native.wasmtime_context_take_exception(store.Context.handle, out var exception))
+                    throw WasmException.FromTrapAndException(store.Context, trap, exception);
                 throw TrapException.FromOwnedTrap(trap);
             }
 
@@ -231,6 +235,8 @@ namespace Wasmtime
         {
             if (trap != IntPtr.Zero)
             {
+                if (Function.Native.wasmtime_context_take_exception(store.Context.handle, out var exception))
+                    throw WasmException.FromTrapAndException(store.Context, trap, exception);
                 throw TrapException.FromOwnedTrap(trap);
             }
 
@@ -262,6 +268,8 @@ namespace Wasmtime
         {
             if (trap != IntPtr.Zero)
             {
+                if (Function.Native.wasmtime_context_take_exception(store.Context.handle, out var exception))
+                    throw WasmException.FromTrapAndException(store.Context, trap, exception);
                 throw TrapException.FromOwnedTrap(trap);
             }
 
@@ -296,6 +304,8 @@ namespace Wasmtime
         {
             if (trap != IntPtr.Zero)
             {
+                if (Function.Native.wasmtime_context_take_exception(store.Context.handle, out var exception))
+                    throw WasmException.FromTrapAndException(store.Context, trap, exception);
                 throw TrapException.FromOwnedTrap(trap);
             }
 
@@ -333,6 +343,8 @@ namespace Wasmtime
         {
             if (trap != IntPtr.Zero)
             {
+                if (Function.Native.wasmtime_context_take_exception(store.Context.handle, out var exception))
+                    throw WasmException.FromTrapAndException(store.Context, trap, exception);
                 throw TrapException.FromOwnedTrap(trap);
             }
 
@@ -373,6 +385,8 @@ namespace Wasmtime
         {
             if (trap != IntPtr.Zero)
             {
+                if (Function.Native.wasmtime_context_take_exception(store.Context.handle, out var exception))
+                    throw WasmException.FromTrapAndException(store.Context, trap, exception);
                 throw TrapException.FromOwnedTrap(trap);
             }
 
