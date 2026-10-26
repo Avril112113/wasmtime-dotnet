@@ -14,6 +14,31 @@ namespace Wasmtime.Native
     {
         const string __DllName = "wasmtime";
 
+        internal const uint WASMTIME_STORAGE_TYPE_KIND_I8 = 0;
+        internal const uint WASMTIME_STORAGE_TYPE_KIND_I16 = 1;
+        internal const uint WASMTIME_STORAGE_TYPE_KIND_VALTYPE = 2;
+        internal const uint WASMTIME_HEAPTYPE_KIND_EXTERN = 0;
+        internal const uint WASMTIME_HEAPTYPE_KIND_NOEXTERN = 1;
+        internal const uint WASMTIME_HEAPTYPE_KIND_FUNC = 2;
+        internal const uint WASMTIME_HEAPTYPE_KIND_CONCRETE_FUNC = 3;
+        internal const uint WASMTIME_HEAPTYPE_KIND_NOFUNC = 4;
+        internal const uint WASMTIME_HEAPTYPE_KIND_ANY = 5;
+        internal const uint WASMTIME_HEAPTYPE_KIND_NONE = 6;
+        internal const uint WASMTIME_HEAPTYPE_KIND_EQ = 7;
+        internal const uint WASMTIME_HEAPTYPE_KIND_I31 = 8;
+        internal const uint WASMTIME_HEAPTYPE_KIND_ARRAY = 9;
+        internal const uint WASMTIME_HEAPTYPE_KIND_CONCRETE_ARRAY = 10;
+        internal const uint WASMTIME_HEAPTYPE_KIND_STRUCT = 11;
+        internal const uint WASMTIME_HEAPTYPE_KIND_CONCRETE_STRUCT = 12;
+        internal const uint WASMTIME_HEAPTYPE_KIND_EXN = 13;
+        internal const uint WASMTIME_HEAPTYPE_KIND_CONCRETE_EXN = 14;
+        internal const uint WASMTIME_HEAPTYPE_KIND_NOEXN = 15;
+        internal const uint WASMTIME_VALTYPE_KIND_I32 = 0;
+        internal const uint WASMTIME_VALTYPE_KIND_I64 = 1;
+        internal const uint WASMTIME_VALTYPE_KIND_F32 = 2;
+        internal const uint WASMTIME_VALTYPE_KIND_F64 = 3;
+        internal const uint WASMTIME_VALTYPE_KIND_V128 = 4;
+        internal const uint WASMTIME_VALTYPE_KIND_REF = 5;
         internal const uint WASMTIME_UPDATE_DEADLINE_CONTINUE = 0;
         internal const uint WASMTIME_UPDATE_DEADLINE_YIELD = 1;
         internal const uint WASMTIME_EXTERN_TAG = 5;
@@ -31,8 +56,6 @@ namespace Wasmtime.Native
         internal const uint WASMTIME_EXTERNREF = 6;
         internal const uint WASMTIME_ANYREF = 7;
         internal const uint WASMTIME_EXNREF = 8;
-        internal const uint WASMTIME_STORAGE_KIND_I8 = 9;
-        internal const uint WASMTIME_STORAGE_KIND_I16 = 10;
         internal const uint WASMTIME_COMPONENT_VALTYPE_BOOL = 0;
         internal const uint WASMTIME_COMPONENT_VALTYPE_S8 = 1;
         internal const uint WASMTIME_COMPONENT_VALTYPE_S16 = 2;
@@ -93,8 +116,8 @@ namespace Wasmtime.Native
         /// <summary>
         /// Wasmtime version string.
         /// </summary>
-        internal static ReadOnlySpan<byte> WASMTIME_VERSION => new byte[] { 52, 52, 46, 48, 46, 50, 0 };
-        internal const uint WASMTIME_VERSION_MAJOR = 44;
+        internal static ReadOnlySpan<byte> WASMTIME_VERSION => new byte[] { 52, 56, 46, 48, 46, 50, 0 };
+        internal const uint WASMTIME_VERSION_MAJOR = 48;
         internal const uint WASMTIME_VERSION_MINOR = 0;
         internal const uint WASMTIME_VERSION_PATCH = 2;
 
@@ -2226,6 +2249,93 @@ namespace Wasmtime.Native
         internal static extern void wasm_instance_exports(wasm_instance_t* arg1, wasm_extern_vec_t* @out);
 
         /// <summary>
+        /// Clone a storage type into out.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_storage_type_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_storage_type_clone(wasmtime_storage_type* storage, wasmtime_storage_type* @out);
+
+        /// <summary>
+        /// Delete a storage type.
+        ///
+        /// Only necessary for WASMTIME_STORAGE_TYPE_KIND_VALTYPE when the value type is a concrete reference type.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_storage_type_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_storage_type_delete(wasmtime_storage_type* storage);
+
+        /// <summary>
+        /// Clone a field type into out.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_field_type_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_field_type_clone(wasmtime_field_type* field, wasmtime_field_type* @out);
+
+        /// <summary>
+        /// Delete a field type.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_field_type_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_field_type_delete(wasmtime_field_type* field);
+
+        /// <summary>
+        /// Create a new struct type.
+        ///
+        /// engineThe engine to register the type with. fieldsPointer to an array of field type descriptors. nfieldsNumber of fields.Returns a new struct type, or NULL on error (e.g. invalid field types).
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_struct_type_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_struct_type* wasmtime_struct_type_new(wasm_engine_t* engine, wasmtime_field_type* fields, nuint nfields);
+
+        /// <summary>
+        /// Clone a struct type.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_struct_type_copy", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_struct_type* wasmtime_struct_type_copy(wasmtime_struct_type* ty);
+
+        /// <summary>
+        /// Delete a struct type.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_struct_type_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_struct_type_delete(wasmtime_struct_type* ty);
+
+        /// <summary>
+        /// Get the number of fields in a struct type.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_struct_type_num_fields", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern nuint wasmtime_struct_type_num_fields(wasmtime_struct_type* ty);
+
+        /// <summary>
+        /// Get the field type of a struct type's field by index.
+        ///
+        /// Returns true if index is in-bounds and out is filled in. Returns false if index is out-of-bounds and out is not modified.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_struct_type_field", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_struct_type_field(wasmtime_struct_type* ty, nuint index, wasmtime_field_type* @out);
+
+        /// <summary>
+        /// Create a new array type.
+        ///
+        /// engineThe engine to register the type with. fieldThe element type descriptor.Returns a new array type.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_array_type_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_array_type* wasmtime_array_type_new(wasm_engine_t* engine, wasmtime_field_type* field);
+
+        /// <summary>
+        /// Clone an array type.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_array_type_copy", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_array_type* wasmtime_array_type_copy(wasmtime_array_type* ty);
+
+        /// <summary>
+        /// Delete an array type.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_array_type_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_array_type_delete(wasmtime_array_type* ty);
+
+        /// <summary>
+        /// Get the element type of an array type.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_array_type_element", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_array_type_element(wasmtime_array_type* ty, wasmtime_field_type* @out);
+
+        /// <summary>
         /// Creates a new error with the provided message.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "wasmtime_error_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
@@ -2261,6 +2371,519 @@ namespace Wasmtime.Native
         /// </summary>
         [DllImport(__DllName, EntryPoint = "wasmtime_error_wasm_trace", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         internal static extern void wasmtime_error_wasm_trace(wasmtime_error* arg1, wasm_frame_vec_t* @out);
+
+        /// <summary>
+        /// Creates a new exception type with the given parameter types.
+        ///
+        /// Fills in out on success and returns NULL. Otherwise returns an error and does not modify out.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_exn_type_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_exn_type_new(wasm_engine_t* engine, wasm_valtype_vec_t* @params, wasmtime_exn_type** @out);
+
+        /// <summary>
+        /// Deletes an exception type.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_exn_type_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_exn_type_delete(wasmtime_exn_type* ty);
+
+        /// <summary>
+        /// Clones ty, returning a pointer that must be deleted with wasmtime_exn_type_delete.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_exn_type_copy", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_exn_type* wasmtime_exn_type_copy(wasmtime_exn_type* ty);
+
+        /// <summary>
+        /// Returns tag type associated with this exception type.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_exn_type_tag_type", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasm_tagtype_t* wasmtime_exn_type_tag_type(wasmtime_exn_type* ty);
+
+        /// <summary>
+        /// Returns a new value type representing the wasm v128 type.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_wasm_valtype_v128", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasm_valtype_t* wasmtime_wasm_valtype_v128();
+
+        /// <summary>
+        /// Returns whether a is logically equal to b.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_wasm_valtype_equal", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_wasm_valtype_equal(wasm_valtype_t* a, wasm_valtype_t* b);
+
+        /// <summary>
+        /// Clones ty into out.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_heaptype_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_heaptype_clone(wasmtime_heaptype* ty, wasmtime_heaptype* @out);
+
+        /// <summary>
+        /// Deletes any payload of ty, if applicable.
+        ///
+        /// Only necessary to call for concrete types.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_heaptype_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_heaptype_delete(wasmtime_heaptype* ty);
+
+        /// <summary>
+        /// Clones ty into out.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_reftype_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_reftype_clone(wasmtime_reftype* ty, wasmtime_reftype* @out);
+
+        /// <summary>
+        /// Deletes any payload of ty, if applicable.
+        ///
+        /// Only necessary if ty->heaptype is concrete.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_reftype_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_reftype_delete(wasmtime_reftype* ty);
+
+        /// <summary>
+        /// Creates a new type in out from the type in ty.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_valtype_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_valtype_new(wasm_valtype_t* ty, wasmtime_valtype* @out);
+
+        /// <summary>
+        /// Clones ty into out.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_valtype_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_valtype_clone(wasmtime_valtype* ty, wasmtime_valtype* @out);
+
+        /// <summary>
+        /// Deletes any payload of ty, if applicable.
+        ///
+        /// Only necessary when ty is a concrete reference type.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_valtype_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_valtype_delete(wasmtime_valtype* ty);
+
+        /// <summary>
+        /// Converts ty into a wasm_valtype_t and returns a pointer to it.
+        ///
+        /// The caller must deallocate the returned value.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_valtype_to_wasm", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasm_valtype_t* wasmtime_valtype_to_wasm(wasm_engine_t* engine, wasmtime_valtype* ty);
+
+        /// <summary>
+        /// Compiles a WebAssembly binary into a wasmtime_module_t.
+        ///
+        /// This function will compile a WebAssembly binary into an owned wasm_module_t. This performs the same as wasm_module_new except that it returns a wasmtime_error_t type to get richer error information.On success the returned wasmtime_error_t is NULL and the ret pointer is filled in with a wasm_module_t. On failure the wasmtime_error_t is non-NULL and the ret pointer is unmodified.This function does not take ownership of any of its arguments, but the returned error and module are owned by the caller.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_module_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_module_new(wasm_engine_t* engine, byte* wasm, nuint wasm_len, wasmtime_module** ret);
+
+        /// <summary>
+        /// Deletes a module.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_module_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_module_delete(wasmtime_module* m);
+
+        /// <summary>
+        /// Creates a shallow clone of the specified module, increasing the internal reference count.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_module_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_module* wasmtime_module_clone(wasmtime_module* m);
+
+        /// <summary>
+        /// Same as wasm_module_imports, but for wasmtime_module_t.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_module_imports", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_module_imports(wasmtime_module* module, wasm_importtype_vec_t* @out);
+
+        /// <summary>
+        /// Same as wasm_module_exports, but for wasmtime_module_t.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_module_exports", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_module_exports(wasmtime_module* module, wasm_exporttype_vec_t* @out);
+
+        /// <summary>
+        /// Validate a WebAssembly binary.
+        ///
+        /// This function will validate the provided byte sequence to determine if it is a valid WebAssembly binary within the context of the engine provided.This function does not take ownership of its arguments but the caller is expected to deallocate the returned error if it is non-NULL.If the binary validates then NULL is returned, otherwise the error returned describes why the binary did not validate.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_module_validate", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_module_validate(wasm_engine_t* engine, byte* wasm, nuint wasm_len);
+
+        /// <summary>
+        /// This function serializes compiled module artifacts as blob data.
+        ///
+        /// modulethe module retif the conversion is successful, this byte vector is filled in with the serialized compiled module.a non-null error if parsing fails, or returns NULL. If parsing fails then ret isn't touched.
+        /// This function does not take ownership of module, and the caller is expected to deallocate the returned wasmtime_error_t and wasm_byte_vec_t.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_module_serialize", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_module_serialize(wasmtime_module* module, wasm_byte_vec_t* ret);
+
+        /// <summary>
+        /// Build a module from serialized data.
+        ///
+        /// This function does not take ownership of any of its arguments, but the returned error and module are owned by the caller.This function is not safe to receive arbitrary user input. See the Rust documentation for more information on what inputs are safe to pass in here (e.g. only that of wasmtime_module_serialize)
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_module_deserialize", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_module_deserialize(wasm_engine_t* engine, byte* bytes, nuint bytes_len, wasmtime_module** ret);
+
+        /// <summary>
+        /// Deserialize a module from an on-disk file.
+        ///
+        /// This function is the same as wasmtime_module_deserialize except that it reads the data for the serialized module from the path on disk. This can be faster than the alternative which may require copying the data around.This function does not take ownership of any of its arguments, but the returned error and module are owned by the caller.This function is not safe to receive arbitrary user input. See the Rust documentation for more information on what inputs are safe to pass in here (e.g. only that of wasmtime_module_serialize)
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_module_deserialize_file", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_module_deserialize_file(wasm_engine_t* engine, byte* path, wasmtime_module** ret);
+
+        /// <summary>
+        /// Returns the range of bytes in memory where this module’s compilation image resides.
+        ///
+        /// The compilation image for a module contains executable code, data, debug information, etc. This is roughly the same as the wasmtime_module_serialize but not the exact same.For more details see: https://docs.wasmtime.dev/api/wasmtime/struct.Module.html#method.image_range
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_module_image_range", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_module_image_range(wasmtime_module* module, void** start, void** end);
+
+        /// <summary>
+        /// Creates a new WebAssembly shared linear memory.
+        ///
+        /// engineengine that created shared memory is associated with tythe type of the memory to create retwhere to store the returned memory
+        /// If an error happens when creating the memory it's returned and owned by the caller. If an error happens then ret is not filled in.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_sharedmemory_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_sharedmemory_new(wasm_engine_t* engine, wasm_memorytype_t* ty, wasmtime_sharedmemory** ret);
+
+        /// <summary>
+        /// Deletes shared linear memory.
+        ///
+        /// memorymemory to be deleted
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_sharedmemory_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_sharedmemory_delete(wasmtime_sharedmemory* memory);
+
+        /// <summary>
+        /// Clones shared linear memory.
+        ///
+        /// memorymemory to be cloned
+        /// This function makes shallow clone, ie. copy of reference counted memory handle.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_sharedmemory_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_sharedmemory* wasmtime_sharedmemory_clone(wasmtime_sharedmemory* memory);
+
+        /// <summary>
+        /// Returns the type of the shared memory specified.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_sharedmemory_type", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasm_memorytype_t* wasmtime_sharedmemory_type(wasmtime_sharedmemory* memory);
+
+        /// <summary>
+        /// Returns the base pointer in memory where the shared linear memory starts.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_sharedmemory_data", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern byte* wasmtime_sharedmemory_data(wasmtime_sharedmemory* memory);
+
+        /// <summary>
+        /// Returns the byte length of this shared linear memory.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_sharedmemory_data_size", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern nuint wasmtime_sharedmemory_data_size(wasmtime_sharedmemory* memory);
+
+        /// <summary>
+        /// Returns the length, in WebAssembly pages, of this shared linear memory.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_sharedmemory_size", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern ulong wasmtime_sharedmemory_size(wasmtime_sharedmemory* memory);
+
+        /// <summary>
+        /// Attempts to grow the specified shared memory by delta pages.
+        ///
+        /// memorythe memory to grow deltathe number of pages to grow by prev_sizewhere to store the previous size of memory
+        /// If memory cannot be grown then prev_size is left unchanged and an error is returned. Otherwise prev_size is set to the previous size of the memory, in WebAssembly pages, and NULL is returned.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_sharedmemory_grow", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_sharedmemory_grow(wasmtime_sharedmemory* memory, ulong delta, ulong* prev_size);
+
+        /// <summary>
+        /// Creates a new store within the specified engine.
+        ///
+        /// enginethe compilation environment with configuration this store is connected to datauser-provided data to store, can later be acquired with wasmtime_context_get_data. finalizeran optional finalizer for data
+        /// This function creates a fresh store with the provided configuration settings. The returned store must be deleted with wasmtime_store_delete.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_store_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_store* wasmtime_store_new(wasm_engine_t* engine, void* data, delegate* unmanaged[Cdecl]<void*, void> finalizer);
+
+        /// <summary>
+        /// Returns the interior wasmtime_context_t pointer to this store.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_store_context", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_context* wasmtime_store_context(wasmtime_store* store);
+
+        /// <summary>
+        /// Provides limits for a store. Used by hosts to limit resource consumption of instances. Use negative value to keep the default value for the limit.
+        ///
+        /// storestore where the limits should be set. memory_sizethe maximum number of bytes a linear memory can grow to. Growing a linear memory beyond this limit will fail. By default, linear memory will not be limited. table_elementsthe maximum number of elements in a table. Growing a table beyond this limit will fail. By default, table elements will not be limited. instancesthe maximum number of instances that can be created for a Store. Module instantiation will fail if this limit is exceeded. This value defaults to 10,000. tablesthe maximum number of tables that can be created for a Store. Module instantiation will fail if this limit is exceeded. This value defaults to 10,000. memoriesthe maximum number of linear memories that can be created for a Store. Instantiation will fail with an error if this limit is exceeded. This value defaults to 10,000.
+        /// Use any negative value for the parameters that should be kept on the default values.Note that the limits are only used to limit the creation/growth of resources in the future, this does not retroactively attempt to apply limits to the store.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_store_limiter", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_store_limiter(wasmtime_store* store, long memory_size, long table_elements, long instances, long tables, long memories);
+
+        /// <summary>
+        /// Deletes a store.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_store_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_store_delete(wasmtime_store* store);
+
+        /// <summary>
+        /// Returns the user-specified data associated with the specified store.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_context_get_data", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void* wasmtime_context_get_data(wasmtime_context* context);
+
+        /// <summary>
+        /// Overwrites the user-specified data associated with this store.
+        ///
+        /// Note that this does not execute the original finalizer for the provided data, and the original finalizer will be executed for the provided data when the store is deleted.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_context_set_data", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_context_set_data(wasmtime_context* context, void* data);
+
+        /// <summary>
+        /// Perform garbage collection within the given context.
+        ///
+        /// Garbage collects externrefs that are used within this store. Any externrefs that are discovered to be unreachable by other code or objects will have their finalizers run.The context argument must not be NULL.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_context_gc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_context_gc(wasmtime_context* context);
+
+        /// <summary>
+        /// Set fuel to this context's store for wasm to consume while executing.
+        ///
+        /// For this method to work fuel consumption must be enabled via wasmtime_config_consume_fuel_set. By default a store starts with 0 fuel for wasm to execute with (meaning it will immediately trap). This function must be called for the store to have some fuel to allow WebAssembly to execute.Note that when fuel is entirely consumed it will cause wasm to trap.If fuel is not enabled within this store then an error is returned. If fuel is successfully added then NULL is returned.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_context_set_fuel", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_context_set_fuel(wasmtime_context* store, ulong fuel);
+
+        /// <summary>
+        /// Returns the amount of fuel remaining in this context's store.
+        ///
+        /// If fuel consumption is not enabled via wasmtime_config_consume_fuel_set then this function will return an error. Otherwise NULL is returned and the fuel parameter is filled in with fuel consumed so far.Also note that fuel, if enabled, must be originally configured via wasmtime_context_set_fuel.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_context_get_fuel", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_context_get_fuel(wasmtime_context* context, ulong* fuel);
+
+        /// <summary>
+        /// Configures WASI state within the specified store.
+        ///
+        /// This function is required if wasmtime_linker_define_wasi is called. This will configure the WASI state for instances defined within this store to the configuration specified.This function does not take ownership of context but it does take ownership of wasi. The caller should no longer use wasi after calling this function (even if an error is returned).
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_context_set_wasi", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_context_set_wasi(wasmtime_context* context, wasi_config_t* wasi);
+
+        /// <summary>
+        /// Initializes the WASI HTTP context for this store.
+        ///
+        /// Must be called before instantiating a component that uses wasi:http. Requires WASI to be configured first via wasmtime_context_set_wasi.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_context_set_wasi_http", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_context_set_wasi_http(wasmtime_context* context);
+
+        /// <summary>
+        /// Configures the relative deadline at which point WebAssembly code will trap or invoke the callback function.
+        ///
+        /// This function configures the store-local epoch deadline after which point WebAssembly code will trap or invoke the callback function.See also wasmtime_config_epoch_interruption_set and wasmtime_store_epoch_deadline_callback.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_context_set_epoch_deadline", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_context_set_epoch_deadline(wasmtime_context* context, ulong ticks_beyond_current);
+
+        /// <summary>
+        /// Configures epoch deadline callback to C function.
+        ///
+        /// This function configures a store-local callback function that will be called when the running WebAssembly function has exceeded its epoch deadline. That function can:return a wasmtime_error_t to terminate the functionset the delta argument and return NULL to update the epoch deadline delta and resume function execution.set the delta argument, update the epoch deadline, set update_kind to WASMTIME_UPDATE_DEADLINE_YIELD, and return NULL to yield (via async support) and resume function execution.To use WASMTIME_UPDATE_DEADLINE_YIELD async support must be enabled for this store.See also wasmtime_config_epoch_interruption_set and wasmtime_context_set_epoch_deadline.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_store_epoch_deadline_callback", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_store_epoch_deadline_callback(wasmtime_store* store, delegate* unmanaged[Cdecl]<wasmtime_context*, void*, ulong*, byte*, wasmtime_error*> func, void* data, delegate* unmanaged[Cdecl]<void*, void> finalizer);
+
+        /// <summary>
+        /// Creates a new host-defined tag.
+        ///
+        /// storethe store in which to create the tag ttthe tag type that describes the tag's exception payload reton success, filled with the new tagNULL on success, otherwise an error describing the failure.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_tag_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_tag_new(wasmtime_context* store, wasm_tagtype_t* tt, wasmtime_tag* ret);
+
+        /// <summary>
+        /// Returns the type of the given tag.
+        ///
+        /// The returned wasm_tagtype_t is owned by the caller.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_tag_type", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasm_tagtype_t* wasmtime_tag_type(wasmtime_context* store, wasmtime_tag* tag);
+
+        /// <summary>
+        /// Tests whether two tags are identical (same definition).
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_tag_eq", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_tag_eq(wasmtime_context* store, wasmtime_tag* a, wasmtime_tag* b);
+
+        /// <summary>
+        /// Deletes a wasmtime_extern_t.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_extern_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_extern_delete(wasmtime_extern* val);
+
+        /// <summary>
+        /// Returns the type of the wasmtime_extern_t defined within the given store.
+        ///
+        /// Does not take ownership of context or val, but the returned wasm_externtype_t is an owned value that needs to be deleted.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_extern_type", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasm_externtype_t* wasmtime_extern_type(wasmtime_context* context, wasmtime_extern* val);
+
+        /// <summary>
+        /// Unroot the value contained by val.
+        ///
+        /// This function will unroot any GC references that val points to, for example if it has the WASMTIME_EXTERNREF, WASMTIME_ANYREF, or WASMTIME_EXNREF kinds. This function leaves val in an undefined state and it should not be used again without re-initializing.This method does not need to be called for integers, floats, v128, or funcref values.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_val_unroot", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_val_unroot(wasmtime_val* val);
+
+        /// <summary>
+        /// Clones the value pointed to by src into the dst provided.
+        ///
+        /// This function will clone any rooted GC values in src and have them newly rooted inside of dst. When using this API the dst should be later unrooted with wasmtime_val_unroot if it contains GC values.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_val_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_val_clone(wasmtime_val* src, wasmtime_val* dst);
+
+        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_anyref_clone(wasmtime_anyref* anyref, wasmtime_anyref* @out);
+
+        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_unroot", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_anyref_unroot(wasmtime_anyref* ref_);
+
+        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_from_raw", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_anyref_from_raw(wasmtime_context* context, uint raw, wasmtime_anyref* @out);
+
+        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_to_raw", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern uint wasmtime_anyref_to_raw(wasmtime_context* context, wasmtime_anyref* ref_);
+
+        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_from_i31", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_anyref_from_i31(wasmtime_context* context, uint i31val, wasmtime_anyref* @out);
+
+        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_is_i31", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_anyref_is_i31(wasmtime_context* context, wasmtime_anyref* anyref);
+
+        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_i31_get_u", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_anyref_i31_get_u(wasmtime_context* context, wasmtime_anyref* anyref, uint* dst);
+
+        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_i31_get_s", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_anyref_i31_get_s(wasmtime_context* context, wasmtime_anyref* anyref, int* dst);
+
+        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_is_eqref", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_anyref_is_eqref(wasmtime_context* context, wasmtime_anyref* anyref);
+
+        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_as_eqref", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_anyref_as_eqref(wasmtime_context* context, wasmtime_anyref* anyref, wasmtime_eqref* @out);
+
+        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_is_struct", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_anyref_is_struct(wasmtime_context* context, wasmtime_anyref* anyref);
+
+        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_as_struct", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_anyref_as_struct(wasmtime_context* context, wasmtime_anyref* anyref, wasmtime_structref* @out);
+
+        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_is_array", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_anyref_is_array(wasmtime_context* context, wasmtime_anyref* anyref);
+
+        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_as_array", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_anyref_as_array(wasmtime_context* context, wasmtime_anyref* anyref, wasmtime_arrayref* @out);
+
+        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_type", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_anyref_type(wasmtime_context* context, wasmtime_anyref* anyref, wasmtime_heaptype* @out);
+
+        /// <summary>
+        /// Create a new array pre-allocator.
+        ///
+        /// contextThe store context. tyThe array type (not consumed; caller retains ownership).Returns a new array ref pre-allocator.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_array_ref_pre_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_array_ref_pre* wasmtime_array_ref_pre_new(wasmtime_context* context, wasmtime_array_type* ty);
+
+        /// <summary>
+        /// Delete an array pre-allocator.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_array_ref_pre_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_array_ref_pre_delete(wasmtime_array_ref_pre* pre);
+
+        /// <summary>
+        /// Allocate a new array instance.
+        ///
+        /// All elements are initialized to the same value.contextThe store context. preThe array pre-allocator. elemThe initial element value. lenThe number of elements. outReceives the new arrayref on success.NULL on success, or a wasmtime_error_t on failure.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_arrayref_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_arrayref_new(wasmtime_context* context, wasmtime_array_ref_pre* pre, wasmtime_val* elem, uint len, wasmtime_arrayref* @out);
+
+        /// <summary>
+        /// Clone an arrayref, creating a new root.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_arrayref_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_arrayref_clone(wasmtime_arrayref* arrayref, wasmtime_arrayref* @out);
+
+        /// <summary>
+        /// Unroot an arrayref to allow garbage collection.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_arrayref_unroot", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_arrayref_unroot(wasmtime_arrayref* ref_);
+
+        /// <summary>
+        /// Upcast an arrayref to an anyref.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_arrayref_to_anyref", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_arrayref_to_anyref(wasmtime_arrayref* arrayref, wasmtime_anyref* @out);
+
+        /// <summary>
+        /// Upcast an arrayref to an eqref.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_arrayref_to_eqref", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_arrayref_to_eqref(wasmtime_arrayref* arrayref, wasmtime_eqref* @out);
+
+        /// <summary>
+        /// Get the length of an array.
+        ///
+        /// contextThe store context. arrayrefThe array (not consumed). outReceives the length on success.NULL on success, or a wasmtime_error_t on failure.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_arrayref_len", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_arrayref_len(wasmtime_context* context, wasmtime_arrayref* arrayref, uint* @out);
+
+        /// <summary>
+        /// Read an element from an array.
+        ///
+        /// contextThe store context. arrayrefThe array (not consumed). indexThe element index. outReceives the element value on success.NULL on success, or a wasmtime_error_t on failure.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_arrayref_get", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_arrayref_get(wasmtime_context* context, wasmtime_arrayref* arrayref, uint index, wasmtime_val* @out);
+
+        /// <summary>
+        /// Set an element of an array.
+        ///
+        /// contextThe store context. arrayrefThe array (not consumed). indexThe element index. valThe value to write.NULL on success, or a wasmtime_error_t on failure.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_arrayref_set", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_arrayref_set(wasmtime_context* context, wasmtime_arrayref* arrayref, uint index, wasmtime_val* val);
+
+        /// <summary>
+        /// Returns the type of the specified arrayref.
+        ///
+        /// If arrayref is NULL or represents ref.null array, then NULL is returned. Otherwise the type of this value is returned. Callers must delete the returned value.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_arrayref_type", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_array_type* wasmtime_arrayref_type(wasmtime_context* context, wasmtime_arrayref* arrayref);
 
         /// <summary>
         /// Configures whether DWARF debug information is constructed at runtime to describe JIT code.
@@ -2415,6 +3038,14 @@ namespace Wasmtime.Native
         internal static extern void wasmtime_config_wasm_wide_arithmetic_set(wasm_config_t* arg1, [MarshalAs(UnmanagedType.U1)] bool arg2);
 
         /// <summary>
+        /// Configures whether the WebAssembly branch-hinting proposal is enabled.
+        ///
+        /// This setting is false by default.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_config_wasm_branch_hinting_set", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_config_wasm_branch_hinting_set(wasm_config_t* arg1, [MarshalAs(UnmanagedType.U1)] bool arg2);
+
+        /// <summary>
         /// Configures whether the WebAssembly exceptions proposal is enabled.
         ///
         /// This setting is false by default.
@@ -2477,6 +3108,14 @@ namespace Wasmtime.Native
         /// </summary>
         [DllImport(__DllName, EntryPoint = "wasmtime_config_cranelift_opt_level_set", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         internal static extern void wasmtime_config_cranelift_opt_level_set(wasm_config_t* arg1, byte arg2);
+
+        /// <summary>
+        /// Configures the regalloc algorithm used by the Cranelift code generator.
+        ///
+        /// This setting in WASMTIME_REGALLOC_BACKTRACKING by default.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_config_cranelift_regalloc_algorithm_set", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_config_cranelift_regalloc_algorithm_set(wasm_config_t* arg1, byte arg2);
 
         /// <summary>
         /// Configures the profiling strategy used for JIT code.
@@ -2793,518 +3432,28 @@ namespace Wasmtime.Native
         internal static extern void wasmtime_config_wasm_component_model_map_set(wasm_config_t* arg1, [MarshalAs(UnmanagedType.U1)] bool arg2);
 
         /// <summary>
-        /// Create a new reference to the same underlying engine.
+        /// Configures whether the WebAssembly component-model async support will be enabled.
         ///
-        /// This function clones the reference-counted pointer to the internal object, and must be freed using wasm_engine_delete.
+        /// For more information see the Rust documentation at https://docs.wasmtime.dev/api/wasmtime/struct.Config.html#method.wasm_component_model_async.
         /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_engine_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasm_engine_t* wasmtime_engine_clone(wasm_engine_t* engine);
+        [DllImport(__DllName, EntryPoint = "wasmtime_config_wasm_component_model_async_set", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_config_wasm_component_model_async_set(wasm_config_t* arg1, [MarshalAs(UnmanagedType.U1)] bool arg2);
 
         /// <summary>
-        /// Increments the engine-local epoch variable.
+        /// Configures whether async built-in intrinsics are enabled for the component model.
         ///
-        /// This function will increment the engine's current epoch which can be used to force WebAssembly code to trap if the current epoch goes beyond the wasmtime_store_t configured epoch deadline.This function is safe to call from any thread, and it is also async-signal-safe.See also wasmtime_config_epoch_interruption_set.
+        /// For more information see the Rust documentation at https://docs.wasmtime.dev/api/wasmtime/struct.Config.html#method.wasm_component_model_more_async_builtins.
         /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_engine_increment_epoch", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_engine_increment_epoch(wasm_engine_t* engine);
+        [DllImport(__DllName, EntryPoint = "wasmtime_config_wasm_component_model_more_async_builtins_set", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_config_wasm_component_model_more_async_builtins_set(wasm_config_t* arg1, [MarshalAs(UnmanagedType.U1)] bool arg2);
 
         /// <summary>
-        /// Returns whether this engine is using the Pulley interpreter to execute WebAssembly code.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_engine_is_pulley", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_engine_is_pulley(wasm_engine_t* engine);
-
-        /// <summary>
-        /// Creates a new store within the specified engine.
+        /// Configures whether stackful coroutine support is enabled for async components.
         ///
-        /// enginethe compilation environment with configuration this store is connected to datauser-provided data to store, can later be acquired with wasmtime_context_get_data. finalizeran optional finalizer for data
-        /// This function creates a fresh store with the provided configuration settings. The returned store must be deleted with wasmtime_store_delete.
+        /// For more information see the Rust documentation at https://docs.wasmtime.dev/api/wasmtime/struct.Config.html#method.wasm_component_model_async_stackful.
         /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_store_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_store* wasmtime_store_new(wasm_engine_t* engine, void* data, delegate* unmanaged[Cdecl]<void*, void> finalizer);
-
-        /// <summary>
-        /// Returns the interior wasmtime_context_t pointer to this store.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_store_context", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_context* wasmtime_store_context(wasmtime_store* store);
-
-        /// <summary>
-        /// Provides limits for a store. Used by hosts to limit resource consumption of instances. Use negative value to keep the default value for the limit.
-        ///
-        /// storestore where the limits should be set. memory_sizethe maximum number of bytes a linear memory can grow to. Growing a linear memory beyond this limit will fail. By default, linear memory will not be limited. table_elementsthe maximum number of elements in a table. Growing a table beyond this limit will fail. By default, table elements will not be limited. instancesthe maximum number of instances that can be created for a Store. Module instantiation will fail if this limit is exceeded. This value defaults to 10,000. tablesthe maximum number of tables that can be created for a Store. Module instantiation will fail if this limit is exceeded. This value defaults to 10,000. memoriesthe maximum number of linear memories that can be created for a Store. Instantiation will fail with an error if this limit is exceeded. This value defaults to 10,000.
-        /// Use any negative value for the parameters that should be kept on the default values.Note that the limits are only used to limit the creation/growth of resources in the future, this does not retroactively attempt to apply limits to the store.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_store_limiter", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_store_limiter(wasmtime_store* store, long memory_size, long table_elements, long instances, long tables, long memories);
-
-        /// <summary>
-        /// Deletes a store.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_store_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_store_delete(wasmtime_store* store);
-
-        /// <summary>
-        /// Returns the user-specified data associated with the specified store.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_context_get_data", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void* wasmtime_context_get_data(wasmtime_context* context);
-
-        /// <summary>
-        /// Overwrites the user-specified data associated with this store.
-        ///
-        /// Note that this does not execute the original finalizer for the provided data, and the original finalizer will be executed for the provided data when the store is deleted.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_context_set_data", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_context_set_data(wasmtime_context* context, void* data);
-
-        /// <summary>
-        /// Perform garbage collection within the given context.
-        ///
-        /// Garbage collects externrefs that are used within this store. Any externrefs that are discovered to be unreachable by other code or objects will have their finalizers run.The context argument must not be NULL.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_context_gc", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_context_gc(wasmtime_context* context);
-
-        /// <summary>
-        /// Set fuel to this context's store for wasm to consume while executing.
-        ///
-        /// For this method to work fuel consumption must be enabled via wasmtime_config_consume_fuel_set. By default a store starts with 0 fuel for wasm to execute with (meaning it will immediately trap). This function must be called for the store to have some fuel to allow WebAssembly to execute.Note that when fuel is entirely consumed it will cause wasm to trap.If fuel is not enabled within this store then an error is returned. If fuel is successfully added then NULL is returned.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_context_set_fuel", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_context_set_fuel(wasmtime_context* store, ulong fuel);
-
-        /// <summary>
-        /// Returns the amount of fuel remaining in this context's store.
-        ///
-        /// If fuel consumption is not enabled via wasmtime_config_consume_fuel_set then this function will return an error. Otherwise NULL is returned and the fuel parameter is filled in with fuel consumed so far.Also note that fuel, if enabled, must be originally configured via wasmtime_context_set_fuel.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_context_get_fuel", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_context_get_fuel(wasmtime_context* context, ulong* fuel);
-
-        /// <summary>
-        /// Configures WASI state within the specified store.
-        ///
-        /// This function is required if wasmtime_linker_define_wasi is called. This will configure the WASI state for instances defined within this store to the configuration specified.This function does not take ownership of context but it does take ownership of wasi. The caller should no longer use wasi after calling this function (even if an error is returned).
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_context_set_wasi", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_context_set_wasi(wasmtime_context* context, wasi_config_t* wasi);
-
-        /// <summary>
-        /// Initializes the WASI HTTP context for this store.
-        ///
-        /// Must be called before instantiating a component that uses wasi:http. Requires WASI to be configured first via wasmtime_context_set_wasi.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_context_set_wasi_http", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_context_set_wasi_http(wasmtime_context* context);
-
-        /// <summary>
-        /// Configures the relative deadline at which point WebAssembly code will trap or invoke the callback function.
-        ///
-        /// This function configures the store-local epoch deadline after which point WebAssembly code will trap or invoke the callback function.See also wasmtime_config_epoch_interruption_set and wasmtime_store_epoch_deadline_callback.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_context_set_epoch_deadline", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_context_set_epoch_deadline(wasmtime_context* context, ulong ticks_beyond_current);
-
-        /// <summary>
-        /// Configures epoch deadline callback to C function.
-        ///
-        /// This function configures a store-local callback function that will be called when the running WebAssembly function has exceeded its epoch deadline. That function can:return a wasmtime_error_t to terminate the functionset the delta argument and return NULL to update the epoch deadline delta and resume function execution.set the delta argument, update the epoch deadline, set update_kind to WASMTIME_UPDATE_DEADLINE_YIELD, and return NULL to yield (via async support) and resume function execution.To use WASMTIME_UPDATE_DEADLINE_YIELD async support must be enabled for this store.See also wasmtime_config_epoch_interruption_set and wasmtime_context_set_epoch_deadline.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_store_epoch_deadline_callback", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_store_epoch_deadline_callback(wasmtime_store* store, delegate* unmanaged[Cdecl]<wasmtime_context*, void*, ulong*, byte*, wasmtime_error*> func, void* data, delegate* unmanaged[Cdecl]<void*, void> finalizer);
-
-        /// <summary>
-        /// Creates a new host-defined tag.
-        ///
-        /// storethe store in which to create the tag ttthe tag type that describes the tag's exception payload reton success, filled with the new tagNULL on success, otherwise an error describing the failure.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_tag_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_tag_new(wasmtime_context* store, wasm_tagtype_t* tt, wasmtime_tag* ret);
-
-        /// <summary>
-        /// Returns the type of the given tag.
-        ///
-        /// The returned wasm_tagtype_t is owned by the caller.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_tag_type", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasm_tagtype_t* wasmtime_tag_type(wasmtime_context* store, wasmtime_tag* tag);
-
-        /// <summary>
-        /// Tests whether two tags are identical (same definition).
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_tag_eq", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_tag_eq(wasmtime_context* store, wasmtime_tag* a, wasmtime_tag* b);
-
-        /// <summary>
-        /// Compiles a WebAssembly binary into a wasmtime_module_t.
-        ///
-        /// This function will compile a WebAssembly binary into an owned wasm_module_t. This performs the same as wasm_module_new except that it returns a wasmtime_error_t type to get richer error information.On success the returned wasmtime_error_t is NULL and the ret pointer is filled in with a wasm_module_t. On failure the wasmtime_error_t is non-NULL and the ret pointer is unmodified.This function does not take ownership of any of its arguments, but the returned error and module are owned by the caller.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_module_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_module_new(wasm_engine_t* engine, byte* wasm, nuint wasm_len, wasmtime_module** ret);
-
-        /// <summary>
-        /// Deletes a module.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_module_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_module_delete(wasmtime_module* m);
-
-        /// <summary>
-        /// Creates a shallow clone of the specified module, increasing the internal reference count.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_module_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_module* wasmtime_module_clone(wasmtime_module* m);
-
-        /// <summary>
-        /// Same as wasm_module_imports, but for wasmtime_module_t.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_module_imports", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_module_imports(wasmtime_module* module, wasm_importtype_vec_t* @out);
-
-        /// <summary>
-        /// Same as wasm_module_exports, but for wasmtime_module_t.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_module_exports", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_module_exports(wasmtime_module* module, wasm_exporttype_vec_t* @out);
-
-        /// <summary>
-        /// Validate a WebAssembly binary.
-        ///
-        /// This function will validate the provided byte sequence to determine if it is a valid WebAssembly binary within the context of the engine provided.This function does not take ownership of its arguments but the caller is expected to deallocate the returned error if it is non-NULL.If the binary validates then NULL is returned, otherwise the error returned describes why the binary did not validate.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_module_validate", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_module_validate(wasm_engine_t* engine, byte* wasm, nuint wasm_len);
-
-        /// <summary>
-        /// This function serializes compiled module artifacts as blob data.
-        ///
-        /// modulethe module retif the conversion is successful, this byte vector is filled in with the serialized compiled module.a non-null error if parsing fails, or returns NULL. If parsing fails then ret isn't touched.
-        /// This function does not take ownership of module, and the caller is expected to deallocate the returned wasmtime_error_t and wasm_byte_vec_t.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_module_serialize", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_module_serialize(wasmtime_module* module, wasm_byte_vec_t* ret);
-
-        /// <summary>
-        /// Build a module from serialized data.
-        ///
-        /// This function does not take ownership of any of its arguments, but the returned error and module are owned by the caller.This function is not safe to receive arbitrary user input. See the Rust documentation for more information on what inputs are safe to pass in here (e.g. only that of wasmtime_module_serialize)
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_module_deserialize", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_module_deserialize(wasm_engine_t* engine, byte* bytes, nuint bytes_len, wasmtime_module** ret);
-
-        /// <summary>
-        /// Deserialize a module from an on-disk file.
-        ///
-        /// This function is the same as wasmtime_module_deserialize except that it reads the data for the serialized module from the path on disk. This can be faster than the alternative which may require copying the data around.This function does not take ownership of any of its arguments, but the returned error and module are owned by the caller.This function is not safe to receive arbitrary user input. See the Rust documentation for more information on what inputs are safe to pass in here (e.g. only that of wasmtime_module_serialize)
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_module_deserialize_file", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_module_deserialize_file(wasm_engine_t* engine, byte* path, wasmtime_module** ret);
-
-        /// <summary>
-        /// Returns the range of bytes in memory where this module’s compilation image resides.
-        ///
-        /// The compilation image for a module contains executable code, data, debug information, etc. This is roughly the same as the wasmtime_module_serialize but not the exact same.For more details see: https://docs.wasmtime.dev/api/wasmtime/struct.Module.html#method.image_range
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_module_image_range", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_module_image_range(wasmtime_module* module, void** start, void** end);
-
-        /// <summary>
-        /// Creates a new WebAssembly shared linear memory.
-        ///
-        /// engineengine that created shared memory is associated with tythe type of the memory to create retwhere to store the returned memory
-        /// If an error happens when creating the memory it's returned and owned by the caller. If an error happens then ret is not filled in.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_sharedmemory_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_sharedmemory_new(wasm_engine_t* engine, wasm_memorytype_t* ty, wasmtime_sharedmemory** ret);
-
-        /// <summary>
-        /// Deletes shared linear memory.
-        ///
-        /// memorymemory to be deleted
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_sharedmemory_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_sharedmemory_delete(wasmtime_sharedmemory* memory);
-
-        /// <summary>
-        /// Clones shared linear memory.
-        ///
-        /// memorymemory to be cloned
-        /// This function makes shallow clone, ie. copy of reference counted memory handle.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_sharedmemory_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_sharedmemory* wasmtime_sharedmemory_clone(wasmtime_sharedmemory* memory);
-
-        /// <summary>
-        /// Returns the type of the shared memory specified.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_sharedmemory_type", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasm_memorytype_t* wasmtime_sharedmemory_type(wasmtime_sharedmemory* memory);
-
-        /// <summary>
-        /// Returns the base pointer in memory where the shared linear memory starts.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_sharedmemory_data", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern byte* wasmtime_sharedmemory_data(wasmtime_sharedmemory* memory);
-
-        /// <summary>
-        /// Returns the byte length of this shared linear memory.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_sharedmemory_data_size", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern nuint wasmtime_sharedmemory_data_size(wasmtime_sharedmemory* memory);
-
-        /// <summary>
-        /// Returns the length, in WebAssembly pages, of this shared linear memory.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_sharedmemory_size", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern ulong wasmtime_sharedmemory_size(wasmtime_sharedmemory* memory);
-
-        /// <summary>
-        /// Attempts to grow the specified shared memory by delta pages.
-        ///
-        /// memorythe memory to grow deltathe number of pages to grow by prev_sizewhere to store the previous size of memory
-        /// If memory cannot be grown then prev_size is left unchanged and an error is returned. Otherwise prev_size is set to the previous size of the memory, in WebAssembly pages, and NULL is returned.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_sharedmemory_grow", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_sharedmemory_grow(wasmtime_sharedmemory* memory, ulong delta, ulong* prev_size);
-
-        /// <summary>
-        /// Deletes a wasmtime_extern_t.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_extern_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_extern_delete(wasmtime_extern* val);
-
-        /// <summary>
-        /// Returns the type of the wasmtime_extern_t defined within the given store.
-        ///
-        /// Does not take ownership of context or val, but the returned wasm_externtype_t is an owned value that needs to be deleted.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_extern_type", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasm_externtype_t* wasmtime_extern_type(wasmtime_context* context, wasmtime_extern* val);
-
-        /// <summary>
-        /// Creates a new reference pointing to the same data that anyref points to (depending on the configured collector this might increase a reference count or create a new GC root).
-        ///
-        /// The returned reference is stored in out.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_anyref_clone(wasmtime_anyref* anyref, wasmtime_anyref* @out);
-
-        /// <summary>
-        /// Downcast an anyref to an eqyref.
-        ///
-        /// Returns true if the downcast succeeded, and out is initialized. Returns false if the downcast failed, and out is left uninitialized.The original anyref is not consumed; out receives a new cloned root pointing to the same GC object as anyref.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_to_eqref", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_anyref_to_eqref(wasmtime_context* context, wasmtime_anyref* anyref, wasmtime_eqref* @out);
-
-        /// <summary>
-        /// Unroots the ref provided within the context.
-        ///
-        /// This API is required to enable the ref value provided to be garbage-collected. This API itself does not necessarily garbage-collect the value, but it's possible to collect it in the future after this.This may modify ref and the contents of ref are left in an undefined state after this API is called and it should no longer be used.Note that null or i32 anyref values do not need to be unrooted but are still valid to pass to this function.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_unroot", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_anyref_unroot(wasmtime_anyref* ref_);
-
-        /// <summary>
-        /// Converts a raw anyref value coming from wasmtime_val_raw_t into a wasmtime_anyref_t.
-        ///
-        /// The provided out pointer is filled in with a reference converted from raw.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_from_raw", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_anyref_from_raw(wasmtime_context* context, uint raw, wasmtime_anyref* @out);
-
-        /// <summary>
-        /// Converts a wasmtime_anyref_t to a raw value suitable for storing into a wasmtime_val_raw_t.
-        ///
-        /// Note that the returned underlying value is not tracked by Wasmtime's garbage collector until it enters WebAssembly. This means that a GC may release the context's reference to the raw value, making the raw value invalid within the context of the store. Do not perform a GC between calling this function and passing it to WebAssembly.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_to_raw", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern uint wasmtime_anyref_to_raw(wasmtime_context* context, wasmtime_anyref* ref_);
-
-        /// <summary>
-        /// Create a new i31ref value.
-        ///
-        /// Creates a new i31ref value (which is a subtype of anyref) and returns a pointer to it.If i31val does not fit in 31 bits, it is wrapped.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_from_i31", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_anyref_from_i31(wasmtime_context* context, uint i31val, wasmtime_anyref* @out);
-
-        /// <summary>
-        /// Test whether an anyref is an i31ref.
-        ///
-        /// Returns true if the given anyref is an i31ref, false otherwise. Returns false for null references.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_is_i31", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_anyref_is_i31(wasmtime_context* context, wasmtime_anyref* anyref);
-
-        /// <summary>
-        /// Get the anyref's underlying i31ref value, zero extended, if any.
-        ///
-        /// If the given anyref is an instance of i31ref, then its value is zero extended to 32 bits, written to dst, and true is returned.If the given anyref is not an instance of i31ref, then false is returned and dst is left unmodified.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_i31_get_u", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_anyref_i31_get_u(wasmtime_context* context, wasmtime_anyref* anyref, uint* dst);
-
-        /// <summary>
-        /// Get the anyref's underlying i31ref value, sign extended, if any.
-        ///
-        /// If the given anyref is an instance of i31ref, then its value is sign extended to 32 bits, written to dst, and true is returned.If the given anyref is not an instance of i31ref, then false is returned and dst is left unmodified.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_i31_get_s", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_anyref_i31_get_s(wasmtime_context* context, wasmtime_anyref* anyref, int* dst);
-
-        /// <summary>
-        /// Create a new externref value.
-        ///
-        /// Creates a new externref value wrapping the provided data, returning whether it was created or not.contextthe store context to allocate this externref within datathe host-specific data to wrap finalizeran optional finalizer for dataoutwhere to store the created value.
-        /// When the reference is reclaimed, the wrapped data is cleaned up with the provided finalizer.If true is returned then out has been filled in and must be unrooted in the future with wasmtime_externref_unroot. If false is returned then the host wasn't able to create more GC values at this time. Performing a GC may free up enough space to try again.If you do not unroot the value, even if you free the corresponding Store, there will be some memory leaked, because GC roots use a separate allocation to track liveness.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_externref_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_externref_new(wasmtime_context* context, void* data, delegate* unmanaged[Cdecl]<void*, void> finalizer, wasmtime_externref* @out);
-
-        /// <summary>
-        /// Get an externref's wrapped data.
-        ///
-        /// Returns the original data passed to wasmtime_externref_new. It is required that data is not NULL.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_externref_data", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void* wasmtime_externref_data(wasmtime_context* context, wasmtime_externref* data);
-
-        /// <summary>
-        /// Creates a new reference pointing to the same data that ref points to (depending on the configured collector this might increase a reference count or create a new GC root).
-        ///
-        /// The out parameter stores the cloned reference. This reference must eventually be unrooted with wasmtime_externref_unroot in the future to enable GC'ing it.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_externref_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_externref_clone(wasmtime_externref* ref_, wasmtime_externref* @out);
-
-        /// <summary>
-        /// Unroots the pointer ref from the context provided.
-        ///
-        /// This function will enable future garbage collection of the value pointed to by ref once there are no more references. The ref value may be mutated in place by this function and its contents are undefined after this function returns. It should not be used until after re-initializing it.Note that null externref values do not need to be unrooted but are still valid to pass to this function.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_externref_unroot", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_externref_unroot(wasmtime_externref* ref_);
-
-        /// <summary>
-        /// Converts a raw externref value coming from wasmtime_val_raw_t into a wasmtime_externref_t.
-        ///
-        /// The out reference is filled in with the non-raw version of this externref. It must eventually be unrooted with wasmtime_externref_unroot.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_externref_from_raw", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_externref_from_raw(wasmtime_context* context, uint raw, wasmtime_externref* @out);
-
-        /// <summary>
-        /// Converts a wasmtime_externref_t to a raw value suitable for storing into a wasmtime_val_raw_t.
-        ///
-        /// Note that the returned underlying value is not tracked by Wasmtime's garbage collector until it enters WebAssembly. This means that a GC may release the context's reference to the raw value, making the raw value invalid within the context of the store. Do not perform a GC between calling this function and passing it to WebAssembly.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_externref_to_raw", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern uint wasmtime_externref_to_raw(wasmtime_context* context, wasmtime_externref* ref_);
-
-        /// <summary>
-        /// Creates a new reference pointing to the same exception that ref points to.
-        ///
-        /// The returned reference is stored in out.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_exnref_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_exnref_clone(wasmtime_exnref* ref_, wasmtime_exnref* @out);
-
-        /// <summary>
-        /// Unroots the ref provided, enabling future garbage collection.
-        ///
-        /// After this call, ref is left in an undefined state and should not be used.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_exnref_unroot", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_exnref_unroot(wasmtime_exnref* ref_);
-
-        /// <summary>
-        /// Unroot the value contained by val.
-        ///
-        /// This function will unroot any GC references that val points to, for example if it has the WASMTIME_EXTERNREF, WASMTIME_ANYREF, or WASMTIME_EXNREF kinds. This function leaves val in an undefined state and it should not be used again without re-initializing.This method does not need to be called for integers, floats, v128, or funcref values.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_val_unroot", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_val_unroot(wasmtime_val* val);
-
-        /// <summary>
-        /// Clones the value pointed to by src into the dst provided.
-        ///
-        /// This function will clone any rooted GC values in src and have them newly rooted inside of dst. When using this API the dst should be later unrooted with wasmtime_val_unroot if it contains GC values.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_val_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_val_clone(wasmtime_val* src, wasmtime_val* dst);
-
-        /// <summary>
-        /// Deletes a wasmtime_exn_t.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_exn_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_exn_delete(wasmtime_exn* exn);
-
-        /// <summary>
-        /// Creates a new exception object.
-        ///
-        /// storethe store context tagthe tag to associate with this exception fieldspointer to an array of field values matching the tag's payload signature nfieldsthe number of elements in fieldsexn_reton success, set to the newly allocated exception. The caller owns the returned pointer and must free it with wasmtime_exn_delete.NULL on success, or an error on failure.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_exn_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_exn_new(wasmtime_context* store, wasmtime_tag* tag, wasmtime_val* fields, nuint nfields, wasmtime_exn** exn_ret);
-
-        /// <summary>
-        /// Returns the tag associated with this exception.
-        ///
-        /// storethe store context exnthe exception to query tag_reton success, filled with the exception's tagNULL on success, or an error on failure.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_exn_tag", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_exn_tag(wasmtime_context* store, wasmtime_exn* exn, wasmtime_tag* tag_ret);
-
-        /// <summary>
-        /// Returns the number of fields in this exception.
-        ///
-        /// storethe store context exnthe exception to query
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_exn_field_count", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern nuint wasmtime_exn_field_count(wasmtime_context* store, wasmtime_exn* exn);
-
-        /// <summary>
-        /// Reads a field value from this exception by index.
-        ///
-        /// storethe store context exnthe exception to query indexthe field index (0-based) val_reton success, filled with the field value (caller-owned on return).NULL on success, or an error if the index is out of bounds.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_exn_field", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_exn_field(wasmtime_context* store, wasmtime_exn* exn, nuint index, wasmtime_val* val_ret);
-
-        /// <summary>
-        /// Sets the pending exception on the store and returns a trap.
-        ///
-        /// This transfers ownership of exn to the store. After this call, the caller must not use or free exn.Returns a wasm_trap_t that the host callback MUST return to signal to the Wasm runtime that an exception was thrown. The caller owns the returned trap.storethe store context exnthe exception to throw (ownership transferred) a trap to return from the host callback (caller-owned)
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_context_set_exception", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasm_trap_t* wasmtime_context_set_exception(wasmtime_context* store, wasmtime_exn* exn);
-
-        /// <summary>
-        /// Takes the pending exception from the store, if any.
-        ///
-        /// If there is a pending exception, removes it from the store and returns it. The caller owns the returned pointer and must free it with wasmtime_exn_delete.storethe store context exn_reton success, set to the exception (caller-owned)true if there was a pending exception, false otherwise.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_context_take_exception", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_context_take_exception(wasmtime_context* store, wasmtime_exn** exn_ret);
-
-        /// <summary>
-        /// Tests whether there is a pending exception on the store.
-        ///
-        /// storethe store contexttrue if a pending exception is set, false otherwise.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_context_has_exception", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_context_has_exception(wasmtime_context* store);
+        [DllImport(__DllName, EntryPoint = "wasmtime_config_wasm_component_model_async_stackful_set", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_config_wasm_component_model_async_stackful_set(wasm_config_t* arg1, [MarshalAs(UnmanagedType.U1)] bool arg2);
 
         /// <summary>
         /// Creates a new host-defined function.
@@ -3377,41 +3526,6 @@ namespace Wasmtime.Native
         /// </summary>
         [DllImport(__DllName, EntryPoint = "wasmtime_func_to_raw", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         internal static extern void* wasmtime_func_to_raw(wasmtime_context* context, wasmtime_func* func);
-
-        /// <summary>
-        /// Creates a new global value.
-        ///
-        /// Creates a new host-defined global value within the provided storestorethe store in which to create the global typethe wasm type of the global being created valthe initial value of the global reta return pointer for the created global.
-        /// This function may return an error if the val argument does not match the specified type of the global, or if val comes from a different store than the one provided.This function does not take ownership of any of its arguments but error is owned by the caller.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_global_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_global_new(wasmtime_context* store, wasm_globaltype_t* type_, wasmtime_val* val, wasmtime_global* ret);
-
-        /// <summary>
-        /// Returns the wasm type of the specified global.
-        ///
-        /// The returned wasm_globaltype_t is owned by the caller.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_global_type", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasm_globaltype_t* wasmtime_global_type(wasmtime_context* store, wasmtime_global* global);
-
-        /// <summary>
-        /// Get the value of the specified global.
-        ///
-        /// storethe store that owns globalglobalthe global to get outwhere to store the value in this global.
-        /// This function returns ownership of the contents of out, so wasmtime_val_unroot may need to be called on the value.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_global_get", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_global_get(wasmtime_context* store, wasmtime_global* global, wasmtime_val* @out);
-
-        /// <summary>
-        /// Sets a global to a new value.
-        ///
-        /// storethe store that owns globalglobalthe global to set valthe value to store in the global
-        /// This function may return an error if global is not mutable or if val has the wrong type for global.THis does not take ownership of any argument but returns ownership of the error.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_global_set", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_global_set(wasmtime_context* store, wasmtime_global* global, wasmtime_val* val);
 
         /// <summary>
         /// Instantiate a wasm module.
@@ -3596,557 +3710,8 @@ namespace Wasmtime.Native
         [DllImport(__DllName, EntryPoint = "wasmtime_linker_instantiate_pre", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         internal static extern wasmtime_error* wasmtime_linker_instantiate_pre(wasmtime_linker* linker, wasmtime_module* module, wasmtime_instance_pre** instance_pre);
 
-        /// <summary>
-        /// Creates a new memory type from the specified parameters.
-        ///
-        /// Note that this function is preferred over wasm_memorytype_new for compatibility with the memory64 proposal.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_memorytype_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_memorytype_new(ulong min, [MarshalAs(UnmanagedType.U1)] bool max_present, ulong max, [MarshalAs(UnmanagedType.U1)] bool is_64, [MarshalAs(UnmanagedType.U1)] bool shared, byte page_size_log2, wasm_memorytype_t** ret);
-
-        /// <summary>
-        /// Returns the minimum size, in pages, of the specified memory type.
-        ///
-        /// Note that this function is preferred over wasm_memorytype_limits for compatibility with the memory64 proposal.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_memorytype_minimum", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern ulong wasmtime_memorytype_minimum(wasm_memorytype_t* ty);
-
-        /// <summary>
-        /// Returns the maximum size, in pages, of the specified memory type.
-        ///
-        /// If this memory type doesn't have a maximum size listed then false is returned. Otherwise true is returned and the max pointer is filled in with the specified maximum size, in pages.Note that this function is preferred over wasm_memorytype_limits for compatibility with the memory64 proposal.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_memorytype_maximum", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_memorytype_maximum(wasm_memorytype_t* ty, ulong* max);
-
-        /// <summary>
-        /// Returns whether this type of memory represents a 64-bit memory.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_memorytype_is64", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_memorytype_is64(wasm_memorytype_t* ty);
-
-        /// <summary>
-        /// Returns whether this type of memory represents a shared memory.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_memorytype_isshared", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_memorytype_isshared(wasm_memorytype_t* ty);
-
-        /// <summary>
-        /// Returns the page size, in bytes, of this memory type.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_memorytype_page_size", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern ulong wasmtime_memorytype_page_size(wasm_memorytype_t* ty);
-
-        /// <summary>
-        /// Returns the log2 of this memory type's page size, in bytes.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_memorytype_page_size_log2", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern byte wasmtime_memorytype_page_size_log2(wasm_memorytype_t* ty);
-
-        /// <summary>
-        /// Creates a new WebAssembly linear memory.
-        ///
-        /// storethe store to create the memory within tythe type of the memory to create retwhere to store the returned memory
-        /// If an error happens when creating the memory it's returned and owned by the caller. If an error happens then ret is not filled in.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_memory_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_memory_new(wasmtime_context* store, wasm_memorytype_t* ty, wasmtime_memory* ret);
-
-        /// <summary>
-        /// Returns the type of the memory specified.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_memory_type", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasm_memorytype_t* wasmtime_memory_type(wasmtime_context* store, wasmtime_memory* memory);
-
-        /// <summary>
-        /// Returns the base pointer in memory where the linear memory starts.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_memory_data", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern byte* wasmtime_memory_data(wasmtime_context* store, wasmtime_memory* memory);
-
-        /// <summary>
-        /// Returns the byte length of this linear memory.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_memory_data_size", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern nuint wasmtime_memory_data_size(wasmtime_context* store, wasmtime_memory* memory);
-
-        /// <summary>
-        /// Returns the length, in WebAssembly pages, of this linear memory.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_memory_size", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern ulong wasmtime_memory_size(wasmtime_context* store, wasmtime_memory* memory);
-
-        /// <summary>
-        /// Attempts to grow the specified memory by delta pages.
-        ///
-        /// storethe store that owns memorymemorythe memory to grow deltathe number of pages to grow by prev_sizewhere to store the previous size of memory
-        /// If memory cannot be grown then prev_size is left unchanged and an error is returned. Otherwise prev_size is set to the previous size of the memory, in WebAssembly pages, and NULL is returned.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_memory_grow", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_memory_grow(wasmtime_context* store, wasmtime_memory* memory, ulong delta, ulong* prev_size);
-
-        /// <summary>
-        /// Returns the size of a page, in bytes, for this memory.
-        ///
-        /// storethe store that owns memorymemorythe memory to get the page size of
-        /// WebAssembly memories are made up of a whole number of pages, so the byte size (as returned by wasmtime_memory_data_size) will always be a multiple of their page size. Different Wasm memories may have different page sizes.By default this is 64KiB (aka 0x10000, 2**16, 1<<16, or 65536) but the custom-page-sizes proposal allows opting into a page size of 1. Future extensions might allow any power of two as a page size.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_memory_page_size", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern ulong wasmtime_memory_page_size(wasmtime_context* store, wasmtime_memory* memory);
-
-        /// <summary>
-        /// Returns the log2 of this memory's page size, in bytes.
-        ///
-        /// storethe store that owns memorymemorythe memory to get the page size of
-        /// WebAssembly memories are made up of a whole number of pages, so the byte size (as returned by wasmtime_memory_data_size) will always be a multiple of their page size. Different Wasm memories may have different page sizes.By default the page size is 64KiB (aka 0x10000, 2**16, 1<<16, or 65536) but the custom-page-sizes proposal allows opting into a page size of 1. Future extensions might allow any power of two as a page size.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_memory_page_size_log2", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern byte wasmtime_memory_page_size_log2(wasmtime_context* store, wasmtime_memory* memory);
-
-        /// <summary>
-        /// Deletes profiler without finishing it.
-        ///
-        /// guestprofilerprofiler that is being deleted
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_guestprofiler_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_guestprofiler_delete(wasmtime_guestprofiler* guestprofiler);
-
-        /// <summary>
-        /// Begin profiling a new guest.
-        ///
-        /// engineengine in which to perform the profiling module_namename recorded in the profile interval_nanosintended sampling interval in nanoseconds recorded in the profile modulesmodules and associated names that will appear in captured stack traces, pointer to the first element modules_lencount of elements in modulesCreated profiler that is owned by the caller.
-        /// This function does not take ownership of the arguments.For more information see the Rust documentation at: https://docs.wasmtime.dev/api/wasmtime/struct.GuestProfiler.html#method.new
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_guestprofiler_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_guestprofiler* wasmtime_guestprofiler_new(wasm_engine_t* engine, wasm_byte_vec_t* module_name, ulong interval_nanos, wasmtime_guestprofiler_modules* modules, nuint modules_len);
-
-        /// <summary>
-        /// Add a sample to the profile.
-        ///
-        /// guestprofilerthe profiler the sample is being added to storestore that is being used to collect the backtraces delta_nanosCPU time in nanoseconds that was used by this guest since the previous sample
-        /// Zero can be passed as delta_nanos if recording CPU usage information is not needed. This function does not take ownership of the arguments.For more information see the Rust documentation at: https://docs.wasmtime.dev/api/wasmtime/struct.GuestProfiler.html#method.sample
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_guestprofiler_sample", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_guestprofiler_sample(wasmtime_guestprofiler* guestprofiler, wasmtime_store* store, ulong delta_nanos);
-
-        /// <summary>
-        /// Writes out the captured profile.
-        ///
-        /// guestprofilerthe profiler which is being finished and deleted outpointer to where wasm_byte_vec_t containing generated file will be writtenReturns wasmtime_error_t owned by the caller in case of error, NULL otherwise.
-        /// This function takes ownership of guestprofiler, even when error is returned. Only when returning without error out is filled with wasm_byte_vec_t owned by the caller.For more information see the Rust documentation at: https://docs.wasmtime.dev/api/wasmtime/struct.GuestProfiler.html#method.finish
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_guestprofiler_finish", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_guestprofiler_finish(wasmtime_guestprofiler* guestprofiler, wasm_byte_vec_t* @out);
-
-        /// <summary>
-        /// Creates a new host-defined wasm table.
-        ///
-        /// storethe store to create the table within tythe type of the table to create initthe initial value for this table's elements tablewhere to store the returned table
-        /// This function does not take ownership of any of its parameters, but yields ownership of returned error. This function may return an error if the init value does not match ty, for example.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_table_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_table_new(wasmtime_context* store, wasm_tabletype_t* ty, wasmtime_val* init, wasmtime_table* table);
-
-        /// <summary>
-        /// Returns the type of this table.
-        ///
-        /// The caller has ownership of the returned wasm_tabletype_t
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_table_type", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasm_tabletype_t* wasmtime_table_type(wasmtime_context* store, wasmtime_table* table);
-
-        /// <summary>
-        /// Gets a value in a table.
-        ///
-        /// storethe store that owns tabletablethe table to access indexthe table index to access valwhere to store the table's value
-        /// This function will attempt to access a table element. If a nonzero value is returned then val is filled in and is owned by the caller. Otherwise zero is returned because the index is out-of-bounds.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_table_get", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_table_get(wasmtime_context* store, wasmtime_table* table, ulong index, wasmtime_val* val);
-
-        /// <summary>
-        /// Sets a value in a table.
-        ///
-        /// storethe store that owns tabletablethe table to write to indexthe table index to write valuethe value to store.
-        /// This function will store value into the specified index in the table. This does not take ownership of any argument but yields ownership of the error. This function can fail if value has the wrong type for the table, or if index is out of bounds.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_table_set", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_table_set(wasmtime_context* store, wasmtime_table* table, ulong index, wasmtime_val* value);
-
-        /// <summary>
-        /// Returns the size, in elements, of the specified table.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_table_size", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern ulong wasmtime_table_size(wasmtime_context* store, wasmtime_table* table);
-
-        /// <summary>
-        /// Grows a table.
-        ///
-        /// storethe store that owns tabletablethe table to grow deltathe number of elements to grow the table by initthe initial value for new table element slots prev_sizewhere to store the previous size of the table before growth
-        /// This function will attempt to grow the table by delta table elements. This can fail if delta would exceed the maximum size of the table or if init is the wrong type for this table. If growth is successful then NULL is returned and prev_size is filled in with the previous size of the table, in elements, before the growth happened.This function does not take ownership of any of its arguments.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_table_grow", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_table_grow(wasmtime_context* store, wasmtime_table* table, ulong delta, wasmtime_val* init, ulong* prev_size);
-
-        /// <summary>
-        /// Creates a new trap with the given message.
-        ///
-        /// msgthe message to associate with this trap msg_lenthe byte length of msg
-        /// The wasm_trap_t returned is owned by the caller.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_trap_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasm_trap_t* wasmtime_trap_new(byte* msg, nuint msg_len);
-
-        /// <summary>
-        /// Creates a new trap from the given trap code.
-        ///
-        /// codethe trap code to associate with this trap
-        /// The wasm_trap_t returned is owned by the caller.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_trap_new_code", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasm_trap_t* wasmtime_trap_new_code(byte code);
-
-        /// <summary>
-        /// Attempts to extract the trap code from this trap.
-        ///
-        /// Returns true if the trap is an instruction trap triggered while executing Wasm. If true is returned then the trap code is returned through the code pointer. If false is returned then this is not an instruction trap  traps can also be created using wasm_trap_new, or occur with WASI modules exiting with a certain exit code.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_trap_code", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_trap_code(wasm_trap_t* arg1, byte* code);
-
-        /// <summary>
-        /// Returns a human-readable name for this frame's function.
-        ///
-        /// This function will attempt to load a human-readable name for function this frame points to. This function may return NULL.The lifetime of the returned name is the same as the wasm_frame_t itself.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_frame_func_name", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasm_byte_vec_t* wasmtime_frame_func_name(wasm_frame_t* arg1);
-
-        /// <summary>
-        /// Returns a human-readable name for this frame's module.
-        ///
-        /// This function will attempt to load a human-readable name for module this frame points to. This function may return NULL.The lifetime of the returned name is the same as the wasm_frame_t itself.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_frame_module_name", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasm_byte_vec_t* wasmtime_frame_module_name(wasm_frame_t* arg1);
-
-        /// <summary>
-        /// Clone an eqref, creating a new root.
-        ///
-        /// The cloned reference is stored in out.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_eqref_clone(wasmtime_eqref* eqref, wasmtime_eqref* @out);
-
-        /// <summary>
-        /// Unroot an eqref to allow garbage collection.
-        ///
-        /// After calling this, ref is left in an undefined state and should not be used again.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_unroot", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_eqref_unroot(wasmtime_eqref* ref_);
-
-        /// <summary>
-        /// Upcast an eqref to an anyref.
-        ///
-        /// The original eqref is not consumed; out receives a new cloned root pointing to the same GC object as anyref.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_to_anyref", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_eqref_to_anyref(wasmtime_eqref* eqref, wasmtime_anyref* @out);
-
-        /// <summary>
-        /// Create a new i31ref value.
-        ///
-        /// Creates a new i31ref value (which is a subtype of eqref) and returns a pointer to it.If i31val does not fit in 31 bits, it is wrapped.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_from_i31", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_eqref_from_i31(wasmtime_context* context, uint i31val, wasmtime_eqref* @out);
-
-        /// <summary>
-        /// Test whether this eqref is an i31ref.
-        ///
-        /// Returns true if the given eqref is an i31ref, false otherwise. Returns false for null references.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_is_i31", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_eqref_is_i31(wasmtime_context* context, wasmtime_eqref* eqref);
-
-        /// <summary>
-        /// Get the eqref's underlying i31ref value, zero extended.
-        ///
-        /// If the given eqref is an instance of i31ref, then its value is zero extended to 32 bits, written to dst, and true is returned.If the given eqref is not an instance of i31ref, then false is returned and dst is left unmodified.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_i31_get_u", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_eqref_i31_get_u(wasmtime_context* context, wasmtime_eqref* eqref, uint* dst);
-
-        /// <summary>
-        /// Get the eqref's underlying i31ref value, sign extended.
-        ///
-        /// If the given eqref is an instance of i31ref, then its value is sign extended to 32 bits, written to dst, and true is returned.If the given eqref is not an instance of i31ref, then false is returned and dst is left unmodified.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_i31_get_s", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_eqref_i31_get_s(wasmtime_context* context, wasmtime_eqref* eqref, int* dst);
-
-        /// <summary>
-        /// Create a new struct type.
-        ///
-        /// engineThe engine to register the type with. fieldsPointer to an array of field type descriptors. nfieldsNumber of fields.Returns a new struct type, or NULL on error (e.g. invalid field types).
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_struct_type_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_struct_type* wasmtime_struct_type_new(wasm_engine_t* engine, wasmtime_field_type* fields, nuint nfields);
-
-        /// <summary>
-        /// Delete a struct type.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_struct_type_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_struct_type_delete(wasmtime_struct_type* ty);
-
-        /// <summary>
-        /// Create a new struct pre-allocator.
-        ///
-        /// contextThe store context. tyThe struct type.Returns a new struct ref pre-allocator.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_struct_ref_pre_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_struct_ref_pre* wasmtime_struct_ref_pre_new(wasmtime_context* context, wasmtime_struct_type* ty);
-
-        /// <summary>
-        /// Delete a struct pre-allocator.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_struct_ref_pre_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_struct_ref_pre_delete(wasmtime_struct_ref_pre* pre);
-
-        /// <summary>
-        /// Allocate a new struct instance.
-        ///
-        /// contextThe store context. preThe struct pre-allocator. fieldsPointer to array of field values (wasmtime_val_t). nfieldsNumber of fields (must match the struct type). outReceives the new structref on success.NULL on success, or a wasmtime_error_t on failure.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_structref_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_structref_new(wasmtime_context* context, wasmtime_struct_ref_pre* pre, wasmtime_val* fields, nuint nfields, wasmtime_structref* @out);
-
-        /// <summary>
-        /// Clone a structref, creating a new root.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_structref_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_structref_clone(wasmtime_structref* structref, wasmtime_structref* @out);
-
-        /// <summary>
-        /// Unroot a structref to allow garbage collection.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_structref_unroot", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_structref_unroot(wasmtime_structref* ref_);
-
-        /// <summary>
-        /// Upcast a structref to an anyref.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_structref_to_anyref", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_structref_to_anyref(wasmtime_structref* structref, wasmtime_anyref* @out);
-
-        /// <summary>
-        /// Upcast a structref to an eqref.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_structref_to_eqref", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_structref_to_eqref(wasmtime_structref* structref, wasmtime_eqref* @out);
-
-        /// <summary>
-        /// Read a field from a struct.
-        ///
-        /// contextThe store context. structrefThe struct to read from (not consumed). indexThe field index. outReceives the field value on success.NULL on success, or a wasmtime_error_t on failure.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_structref_field", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_structref_field(wasmtime_context* context, wasmtime_structref* structref, nuint index, wasmtime_val* @out);
-
-        /// <summary>
-        /// Set a field of a struct.
-        ///
-        /// contextThe store context. structrefThe struct to write to (not consumed). indexThe field index. valThe value to write (not consumed; caller must still unroot if applicable).NULL on success, or a wasmtime_error_t on failure.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_structref_set_field", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_structref_set_field(wasmtime_context* context, wasmtime_structref* structref, nuint index, wasmtime_val* val);
-
-        /// <summary>
-        /// Test whether an eqref is a structref.
-        ///
-        /// Returns false for null references.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_is_struct", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_eqref_is_struct(wasmtime_context* context, wasmtime_eqref* eqref);
-
-        /// <summary>
-        /// Downcast an eqref to a structref.
-        ///
-        /// If the given eqref is a structref, a new root for it is stored in out and true is returned. Otherwise false is returned and out is set to null.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_as_struct", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_eqref_as_struct(wasmtime_context* context, wasmtime_eqref* eqref, wasmtime_structref* @out);
-
-        /// <summary>
-        /// Create a new array type.
-        ///
-        /// engineThe engine to register the type with. fieldThe element type descriptor.Returns a new array type.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_array_type_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_array_type* wasmtime_array_type_new(wasm_engine_t* engine, wasmtime_field_type* field);
-
-        /// <summary>
-        /// Delete an array type.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_array_type_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_array_type_delete(wasmtime_array_type* ty);
-
-        /// <summary>
-        /// Create a new array pre-allocator.
-        ///
-        /// contextThe store context. tyThe array type (not consumed; caller retains ownership).Returns a new array ref pre-allocator.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_array_ref_pre_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_array_ref_pre* wasmtime_array_ref_pre_new(wasmtime_context* context, wasmtime_array_type* ty);
-
-        /// <summary>
-        /// Delete an array pre-allocator.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_array_ref_pre_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_array_ref_pre_delete(wasmtime_array_ref_pre* pre);
-
-        /// <summary>
-        /// Allocate a new array instance.
-        ///
-        /// All elements are initialized to the same value.contextThe store context. preThe array pre-allocator. elemThe initial element value. lenThe number of elements. outReceives the new arrayref on success.NULL on success, or a wasmtime_error_t on failure.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_arrayref_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_arrayref_new(wasmtime_context* context, wasmtime_array_ref_pre* pre, wasmtime_val* elem, uint len, wasmtime_arrayref* @out);
-
-        /// <summary>
-        /// Clone an arrayref, creating a new root.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_arrayref_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_arrayref_clone(wasmtime_arrayref* arrayref, wasmtime_arrayref* @out);
-
-        /// <summary>
-        /// Unroot an arrayref to allow garbage collection.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_arrayref_unroot", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_arrayref_unroot(wasmtime_arrayref* ref_);
-
-        /// <summary>
-        /// Upcast an arrayref to an anyref.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_arrayref_to_anyref", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_arrayref_to_anyref(wasmtime_arrayref* arrayref, wasmtime_anyref* @out);
-
-        /// <summary>
-        /// Upcast an arrayref to an eqref.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_arrayref_to_eqref", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_arrayref_to_eqref(wasmtime_arrayref* arrayref, wasmtime_eqref* @out);
-
-        /// <summary>
-        /// Get the length of an array.
-        ///
-        /// contextThe store context. arrayrefThe array (not consumed). outReceives the length on success.NULL on success, or a wasmtime_error_t on failure.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_arrayref_len", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_arrayref_len(wasmtime_context* context, wasmtime_arrayref* arrayref, uint* @out);
-
-        /// <summary>
-        /// Read an element from an array.
-        ///
-        /// contextThe store context. arrayrefThe array (not consumed). indexThe element index. outReceives the element value on success.NULL on success, or a wasmtime_error_t on failure.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_arrayref_get", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_arrayref_get(wasmtime_context* context, wasmtime_arrayref* arrayref, uint index, wasmtime_val* @out);
-
-        /// <summary>
-        /// Set an element of an array.
-        ///
-        /// contextThe store context. arrayrefThe array (not consumed). indexThe element index. valThe value to write.NULL on success, or a wasmtime_error_t on failure.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_arrayref_set", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern wasmtime_error* wasmtime_arrayref_set(wasmtime_context* context, wasmtime_arrayref* arrayref, uint index, wasmtime_val* val);
-
-        /// <summary>
-        /// Test whether an eqref is an arrayref.
-        ///
-        /// Returns false for null references.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_is_array", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_eqref_is_array(wasmtime_context* context, wasmtime_eqref* eqref);
-
-        /// <summary>
-        /// Downcast an eqref to an arrayref.
-        ///
-        /// If the given eqref is an arrayref, a new root for it is stored in out and true is returned. Otherwise false is returned and out is set to null.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_as_array", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_eqref_as_array(wasmtime_context* context, wasmtime_eqref* eqref, wasmtime_arrayref* @out);
-
-        /// <summary>
-        /// Test whether an anyref is an eqref.
-        ///
-        /// Returns false for null references.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_is_eqref", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_anyref_is_eqref(wasmtime_context* context, wasmtime_anyref* anyref);
-
-        /// <summary>
-        /// Downcast an anyref to an eqref.
-        ///
-        /// If the given anyref is an eqref, a new root is stored in out and true is returned. Otherwise false is returned and out is set to null.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_as_eqref", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_anyref_as_eqref(wasmtime_context* context, wasmtime_anyref* anyref, wasmtime_eqref* @out);
-
-        /// <summary>
-        /// Test whether an anyref is a structref.
-        ///
-        /// Returns false for null references.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_is_struct", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_anyref_is_struct(wasmtime_context* context, wasmtime_anyref* anyref);
-
-        /// <summary>
-        /// Downcast an anyref to a structref.
-        ///
-        /// If the given anyref is a structref, a new root is stored in out and true is returned. Otherwise false is returned and out is set to null.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_as_struct", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_anyref_as_struct(wasmtime_context* context, wasmtime_anyref* anyref, wasmtime_structref* @out);
-
-        /// <summary>
-        /// Test whether an anyref is an arrayref.
-        ///
-        /// Returns false for null references.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_is_array", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_anyref_is_array(wasmtime_context* context, wasmtime_anyref* anyref);
-
-        /// <summary>
-        /// Downcast an anyref to an arrayref.
-        ///
-        /// If the given anyref is an arrayref, a new root is stored in out and true is returned. Otherwise false is returned and out is set to null.
-        /// </summary>
-        [DllImport(__DllName, EntryPoint = "wasmtime_anyref_as_array", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool wasmtime_anyref_as_array(wasmtime_context* context, wasmtime_anyref* anyref, wasmtime_arrayref* @out);
-
         [DllImport(__DllName, EntryPoint = "wasmtime_config_async_stack_size_set", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern void wasmtime_config_async_stack_size_set(wasm_config_t* arg1, ulong arg2);
+        internal static extern void wasmtime_config_async_stack_size_set(wasm_config_t* arg1, nuint arg2);
 
         /// <summary>
         /// Configures the size of the stacks used for asynchronous execution.
@@ -4174,7 +3739,9 @@ namespace Wasmtime.Native
         internal static extern bool wasmtime_call_future_poll(wasmtime_call_future* future);
 
         /// <summary>
-        /// /brief Frees the underlying memory for a future.All wasmtime_call_future_t are owned by the caller and should be deleted using this function.
+        /// Frees the underlying memory for a future.
+        ///
+        /// All wasmtime_call_future_t are owned by the caller and should be deleted using this function.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "wasmtime_call_future_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         internal static extern void wasmtime_call_future_delete(wasmtime_call_future* future);
@@ -4645,7 +4212,7 @@ namespace Wasmtime.Native
         internal static extern wasmtime_component_func_type_t* wasmtime_component_func_type_clone(wasmtime_component_func_type_t* ty);
 
         /// <summary>
-        /// Deallocates a component instance type.
+        /// Deallocates a component function type.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "wasmtime_component_func_type_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         internal static extern void wasmtime_component_func_type_delete(wasmtime_component_func_type_t* ty);
@@ -4728,7 +4295,7 @@ namespace Wasmtime.Native
         internal static extern wasmtime_module_type* wasmtime_module_type_clone(wasmtime_module_type* ty);
 
         /// <summary>
-        /// Deallocates a component instance type.
+        /// Deallocates a module type.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "wasmtime_module_type_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         internal static extern void wasmtime_module_type_delete(wasmtime_module_type* ty);
@@ -4764,7 +4331,7 @@ namespace Wasmtime.Native
         /// <summary>
         /// Clones a component type.
         ///
-        /// The returned pointer must be deallocated wit hwasmtime_component_type_delete.
+        /// The returned pointer must be deallocated with wasmtime_component_type_delete.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "wasmtime_component_type_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         internal static extern wasmtime_component_type_t* wasmtime_component_type_clone(wasmtime_component_type_t* ty);
@@ -4879,7 +4446,7 @@ namespace Wasmtime.Native
         /// <summary>
         /// Returns the type of this component.
         ///
-        /// The returned pointer must be deallocatd with wasmtime_component_type_delete.
+        /// The returned pointer must be deallocated with wasmtime_component_type_delete.
         /// </summary>
         [DllImport(__DllName, EntryPoint = "wasmtime_component_type", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         internal static extern wasmtime_component_type_t* wasmtime_component_type(wasmtime_component_t* component);
@@ -5223,6 +4790,14 @@ namespace Wasmtime.Native
         internal static extern wasmtime_error* wasmtime_component_func_post_return(wasmtime_component_func* func, wasmtime_context* context);
 
         /// <summary>
+        /// Invokes func with the args given, returning the results asynchronously.
+        ///
+        /// This is the same as wasmtime_component_func_call except that it is asynchronous. This is only compatible with stores associated with an asynchronous config.The result is a future that is owned by the caller and must be deleted via wasmtime_call_future_delete.All parameters to this function must be kept alive and not modified until the returned wasmtime_call_future_t is deleted.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_component_func_call_async", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_call_future* wasmtime_component_func_call_async(wasmtime_component_func* func, wasmtime_context* context, wasmtime_component_val* args, nuint args_size, wasmtime_component_val* results, nuint results_size, wasmtime_error** error_ret);
+
+        /// <summary>
         /// A methods similar to wasmtime_component_get_export_index except for this instance.
         ///
         /// instancethe instance to look up name in contextthe context where instance lives in instance_export_indexoptional (i.e. nullable) instance to look up in namethe name of the export name_lenlength of name in bytes export index if found, else NULL
@@ -5338,6 +4913,654 @@ namespace Wasmtime.Native
         /// </summary>
         [DllImport(__DllName, EntryPoint = "wasmtime_component_linker_instance_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         internal static extern void wasmtime_component_linker_instance_delete(wasmtime_component_linker_instance_t* linker_instance);
+
+        /// <summary>
+        /// Instantiate a component in linker asynchronously.
+        ///
+        /// This is the same as wasmtime_component_linker_instantiate except that it is asynchronous. This is only compatible with stores associated with an asynchronous config.The result is a future that is owned by the caller and must be deleted via wasmtime_call_future_delete.All parameters to this function must be kept alive and not modified until the returned wasmtime_call_future_t is deleted.linkerthe linker to instantiate with contextthe store context componentthe component to instantiate instance_outwhere to store the returned instance error_retwhere to store the returned error
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_component_linker_instantiate_async", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_call_future* wasmtime_component_linker_instantiate_async(wasmtime_component_linker_t* linker, wasmtime_context* context, wasmtime_component_t* component, wasmtime_component_instance* instance_out, wasmtime_error** error_ret);
+
+        /// <summary>
+        /// Define an async function within this instance.
+        ///
+        /// This is the same as wasmtime_component_linker_instance_add_func except that it supports async callbacks.linker_instancethe instance to define the function in namethe function name name_lenlength of name in bytes callbackthe async callback when this function gets called datahost-specific data passed to the callback invocation, can be NULLfinalizeroptional finalizer for data, can be NULLon success NULL, otherwise an error
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_component_linker_instance_add_func_async", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_component_linker_instance_add_func_async(wasmtime_component_linker_instance_t* linker_instance, byte* name, nuint name_len, delegate* unmanaged[Cdecl]<void*, wasmtime_context*, wasmtime_component_func_type_t*, wasmtime_component_val*, nuint, wasmtime_component_val*, nuint, wasmtime_error**, wasmtime_async_continuation_t*, void> callback, void* data, delegate* unmanaged[Cdecl]<void*, void> finalizer);
+
+        /// <summary>
+        /// Add all WASI interfaces into the linker provided using async bindings.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_component_linker_add_wasip2_async", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_component_linker_add_wasip2_async(wasmtime_component_linker_t* linker);
+
+        /// <summary>
+        /// Add WASI HTTP interfaces into the linker provided using async bindings.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_component_linker_add_wasi_http_async", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_component_linker_add_wasi_http_async(wasmtime_component_linker_t* linker);
+
+        /// <summary>
+        /// Create a new reference to the same underlying engine.
+        ///
+        /// This function clones the reference-counted pointer to the internal object, and must be freed using wasm_engine_delete.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_engine_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasm_engine_t* wasmtime_engine_clone(wasm_engine_t* engine);
+
+        /// <summary>
+        /// Increments the engine-local epoch variable.
+        ///
+        /// This function will increment the engine's current epoch which can be used to force WebAssembly code to trap if the current epoch goes beyond the wasmtime_store_t configured epoch deadline.This function is safe to call from any thread, and it is also async-signal-safe.See also wasmtime_config_epoch_interruption_set.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_engine_increment_epoch", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_engine_increment_epoch(wasm_engine_t* engine);
+
+        /// <summary>
+        /// Returns whether this engine is using the Pulley interpreter to execute WebAssembly code.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_engine_is_pulley", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_engine_is_pulley(wasm_engine_t* engine);
+
+        /// <summary>
+        /// Clone an eqref, creating a new root.
+        ///
+        /// The cloned reference is stored in out.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_eqref_clone(wasmtime_eqref* eqref, wasmtime_eqref* @out);
+
+        /// <summary>
+        /// Unroot an eqref to allow garbage collection.
+        ///
+        /// After calling this, ref is left in an undefined state and should not be used again.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_unroot", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_eqref_unroot(wasmtime_eqref* ref_);
+
+        /// <summary>
+        /// Upcast an eqref to an anyref.
+        ///
+        /// The original eqref is not consumed; out receives a new cloned root pointing to the same GC object as anyref.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_to_anyref", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_eqref_to_anyref(wasmtime_eqref* eqref, wasmtime_anyref* @out);
+
+        /// <summary>
+        /// Create a new i31ref value.
+        ///
+        /// Creates a new i31ref value (which is a subtype of eqref) and returns a pointer to it.If i31val does not fit in 31 bits, it is wrapped.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_from_i31", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_eqref_from_i31(wasmtime_context* context, uint i31val, wasmtime_eqref* @out);
+
+        /// <summary>
+        /// Test whether this eqref is an i31ref.
+        ///
+        /// Returns true if the given eqref is an i31ref, false otherwise. Returns false for null references.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_is_i31", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_eqref_is_i31(wasmtime_context* context, wasmtime_eqref* eqref);
+
+        /// <summary>
+        /// Get the eqref's underlying i31ref value, zero extended.
+        ///
+        /// If the given eqref is an instance of i31ref, then its value is zero extended to 32 bits, written to dst, and true is returned.If the given eqref is not an instance of i31ref, then false is returned and dst is left unmodified.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_i31_get_u", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_eqref_i31_get_u(wasmtime_context* context, wasmtime_eqref* eqref, uint* dst);
+
+        /// <summary>
+        /// Get the eqref's underlying i31ref value, sign extended.
+        ///
+        /// If the given eqref is an instance of i31ref, then its value is sign extended to 32 bits, written to dst, and true is returned.If the given eqref is not an instance of i31ref, then false is returned and dst is left unmodified.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_i31_get_s", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_eqref_i31_get_s(wasmtime_context* context, wasmtime_eqref* eqref, int* dst);
+
+        /// <summary>
+        /// Test whether an eqref is an arrayref.
+        ///
+        /// Returns false for null references.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_is_array", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_eqref_is_array(wasmtime_context* context, wasmtime_eqref* eqref);
+
+        /// <summary>
+        /// Downcast an eqref to an arrayref.
+        ///
+        /// If the given eqref is an arrayref, a new root for it is stored in out and true is returned. Otherwise false is returned and out is set to null.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_as_array", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_eqref_as_array(wasmtime_context* context, wasmtime_eqref* eqref, wasmtime_arrayref* @out);
+
+        /// <summary>
+        /// Test whether an eqref is a structref.
+        ///
+        /// Returns false for null references.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_is_struct", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_eqref_is_struct(wasmtime_context* context, wasmtime_eqref* eqref);
+
+        /// <summary>
+        /// Downcast an eqref to a structref.
+        ///
+        /// If the given eqref is a structref, a new root for it is stored in out and true is returned. Otherwise false is returned and out is set to null.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_as_struct", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_eqref_as_struct(wasmtime_context* context, wasmtime_eqref* eqref, wasmtime_structref* @out);
+
+        /// <summary>
+        /// Returns the type of the specified eqref.
+        ///
+        /// If eqref is NULL or represents ref.null eq, then false is returned. Otherwise the type of this value is written to out which the caller must deallocate, and true is returned.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_eqref_type", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_eqref_type(wasmtime_context* context, wasmtime_eqref* eqref, wasmtime_heaptype* @out);
+
+        /// <summary>
+        /// Creates a new exception object.
+        ///
+        /// storethe store context tagthe tag to associate with this exception fieldspointer to an array of field values matching the tag's payload signature nfieldsthe number of elements in fieldsexn_reton success, set to the newly allocated exception. The caller owns the returned pointer and must free it with wasmtime_exnref_unroot.NULL on success, or an error on failure.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_exnref_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_exnref_new(wasmtime_context* store, wasmtime_tag* tag, wasmtime_val* fields, nuint nfields, wasmtime_exnref* exn_ret);
+
+        /// <summary>
+        /// Creates a new reference pointing to the same exception that ref points to.
+        ///
+        /// The returned reference is stored in out.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_exnref_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_exnref_clone(wasmtime_exnref* ref_, wasmtime_exnref* @out);
+
+        /// <summary>
+        /// Unroots the ref provided, enabling future garbage collection.
+        ///
+        /// After this call, ref is left in an undefined state and should not be used.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_exnref_unroot", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_exnref_unroot(wasmtime_exnref* ref_);
+
+        /// <summary>
+        /// Converts a raw exnref value coming from wasmtime_val_raw_t into a wasmtime_exnref_t.
+        ///
+        /// The out reference is filled in with the non-raw version of this exnref. It must eventually be unrooted with wasmtime_exnref_unroot.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_exnref_from_raw", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_exnref_from_raw(wasmtime_context* context, uint raw, wasmtime_exnref* @out);
+
+        /// <summary>
+        /// Converts a wasmtime_exnref_t to a raw value suitable for storing into a wasmtime_val_raw_t.
+        ///
+        /// Note that the returned underlying value is not tracked by Wasmtime's garbage collector until it enters WebAssembly. This means that a GC may release the context's reference to the raw value, making the raw value invalid within the context of the store. Do not perform a GC between calling this function and passing it to WebAssembly.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_exnref_to_raw", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern uint wasmtime_exnref_to_raw(wasmtime_context* context, wasmtime_exnref* ref_);
+
+        /// <summary>
+        /// Returns the tag associated with this exception.
+        ///
+        /// storethe store context exnthe exception to query tag_reton success, filled with the exception's tagNULL on success, or an error on failure.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_exnref_tag", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_exnref_tag(wasmtime_context* store, wasmtime_exnref* exn, wasmtime_tag* tag_ret);
+
+        /// <summary>
+        /// Returns the number of fields in this exception.
+        ///
+        /// storethe store context exnthe exception to query
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_exnref_field_count", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern nuint wasmtime_exnref_field_count(wasmtime_context* store, wasmtime_exnref* exn);
+
+        /// <summary>
+        /// Reads a field value from this exception by index.
+        ///
+        /// storethe store context exnthe exception to query indexthe field index (0-based) val_reton success, filled with the field value (caller-owned on return).NULL on success, or an error if the index is out of bounds.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_exnref_field", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_exnref_field(wasmtime_context* store, wasmtime_exnref* exn, nuint index, wasmtime_val* val_ret);
+
+        /// <summary>
+        /// Sets the pending exception on the store and returns a trap.
+        ///
+        /// Returns a wasm_trap_t that the host callback MUST return to signal to the Wasm runtime that an exception was thrown. The caller owns the returned trap.storethe store context exnthe exception to throw a trap to return from the host callback (caller-owned)
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_context_set_exception", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasm_trap_t* wasmtime_context_set_exception(wasmtime_context* store, wasmtime_exnref* exn);
+
+        /// <summary>
+        /// Takes the pending exception from the store, if any.
+        ///
+        /// If there is a pending exception, removes it from the store and returns it. The caller owns the returned pointer and must free it with wasmtime_exnref_unroot.storethe store context exn_reton success, set to the exception (caller-owned)true if there was a pending exception, false otherwise.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_context_take_exception", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_context_take_exception(wasmtime_context* store, wasmtime_exnref* exn_ret);
+
+        /// <summary>
+        /// Tests whether there is a pending exception on the store.
+        ///
+        /// storethe store contexttrue if a pending exception is set, false otherwise.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_context_has_exception", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_context_has_exception(wasmtime_context* store);
+
+        /// <summary>
+        /// Returns the type of the specified exnref.
+        ///
+        /// If exnref is NULL or represents ref.null exn, then NULL is returned. Otherwise the type of this value is returned. Callers must delete the returned value.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_exnref_type", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_exn_type* wasmtime_exnref_type(wasmtime_context* context, wasmtime_exnref* exnref);
+
+        /// <summary>
+        /// Create a new externref value.
+        ///
+        /// Creates a new externref value wrapping the provided data, returning whether it was created or not.contextthe store context to allocate this externref within datathe host-specific data to wrap finalizeran optional finalizer for dataoutwhere to store the created value.
+        /// When the reference is reclaimed, the wrapped data is cleaned up with the provided finalizer.If true is returned then out has been filled in and must be unrooted in the future with wasmtime_externref_unroot. If false is returned then the host wasn't able to create more GC values at this time. Performing a GC may free up enough space to try again.If you do not unroot the value, even if you free the corresponding Store, there will be some memory leaked, because GC roots use a separate allocation to track liveness.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_externref_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_externref_new(wasmtime_context* context, void* data, delegate* unmanaged[Cdecl]<void*, void> finalizer, wasmtime_externref* @out);
+
+        /// <summary>
+        /// Get an externref's wrapped data.
+        ///
+        /// Returns the original data passed to wasmtime_externref_new. It is required that data is not NULL.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_externref_data", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void* wasmtime_externref_data(wasmtime_context* context, wasmtime_externref* data);
+
+        /// <summary>
+        /// Creates a new reference pointing to the same data that ref points to (depending on the configured collector this might increase a reference count or create a new GC root).
+        ///
+        /// The out parameter stores the cloned reference. This reference must eventually be unrooted with wasmtime_externref_unroot in the future to enable GC'ing it.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_externref_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_externref_clone(wasmtime_externref* ref_, wasmtime_externref* @out);
+
+        /// <summary>
+        /// Unroots the pointer ref from the context provided.
+        ///
+        /// This function will enable future garbage collection of the value pointed to by ref once there are no more references. The ref value may be mutated in place by this function and its contents are undefined after this function returns. It should not be used until after re-initializing it.Note that null externref values do not need to be unrooted but are still valid to pass to this function.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_externref_unroot", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_externref_unroot(wasmtime_externref* ref_);
+
+        /// <summary>
+        /// Converts a raw externref value coming from wasmtime_val_raw_t into a wasmtime_externref_t.
+        ///
+        /// The out reference is filled in with the non-raw version of this externref. It must eventually be unrooted with wasmtime_externref_unroot.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_externref_from_raw", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_externref_from_raw(wasmtime_context* context, uint raw, wasmtime_externref* @out);
+
+        /// <summary>
+        /// Converts a wasmtime_externref_t to a raw value suitable for storing into a wasmtime_val_raw_t.
+        ///
+        /// Note that the returned underlying value is not tracked by Wasmtime's garbage collector until it enters WebAssembly. This means that a GC may release the context's reference to the raw value, making the raw value invalid within the context of the store. Do not perform a GC between calling this function and passing it to WebAssembly.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_externref_to_raw", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern uint wasmtime_externref_to_raw(wasmtime_context* context, wasmtime_externref* ref_);
+
+        /// <summary>
+        /// Creates a new global value.
+        ///
+        /// Creates a new host-defined global value within the provided storestorethe store in which to create the global typethe wasm type of the global being created valthe initial value of the global reta return pointer for the created global.
+        /// This function may return an error if the val argument does not match the specified type of the global, or if val comes from a different store than the one provided.This function does not take ownership of any of its arguments but error is owned by the caller.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_global_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_global_new(wasmtime_context* store, wasm_globaltype_t* type_, wasmtime_val* val, wasmtime_global* ret);
+
+        /// <summary>
+        /// Returns the wasm type of the specified global.
+        ///
+        /// The returned wasm_globaltype_t is owned by the caller.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_global_type", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasm_globaltype_t* wasmtime_global_type(wasmtime_context* store, wasmtime_global* global);
+
+        /// <summary>
+        /// Get the value of the specified global.
+        ///
+        /// storethe store that owns globalglobalthe global to get outwhere to store the value in this global.
+        /// This function returns ownership of the contents of out, so wasmtime_val_unroot may need to be called on the value.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_global_get", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_global_get(wasmtime_context* store, wasmtime_global* global, wasmtime_val* @out);
+
+        /// <summary>
+        /// Sets a global to a new value.
+        ///
+        /// storethe store that owns globalglobalthe global to set valthe value to store in the global
+        /// This function may return an error if global is not mutable or if val has the wrong type for global.This does not take ownership of any argument but returns ownership of the error.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_global_set", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_global_set(wasmtime_context* store, wasmtime_global* global, wasmtime_val* val);
+
+        /// <summary>
+        /// Creates a new memory type from the specified parameters.
+        ///
+        /// Note that this function is preferred over wasm_memorytype_new for compatibility with the memory64 proposal.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_memorytype_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_memorytype_new(ulong min, [MarshalAs(UnmanagedType.U1)] bool max_present, ulong max, [MarshalAs(UnmanagedType.U1)] bool is_64, [MarshalAs(UnmanagedType.U1)] bool shared, byte page_size_log2, wasm_memorytype_t** ret);
+
+        /// <summary>
+        /// Returns the minimum size, in pages, of the specified memory type.
+        ///
+        /// Note that this function is preferred over wasm_memorytype_limits for compatibility with the memory64 proposal.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_memorytype_minimum", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern ulong wasmtime_memorytype_minimum(wasm_memorytype_t* ty);
+
+        /// <summary>
+        /// Returns the maximum size, in pages, of the specified memory type.
+        ///
+        /// If this memory type doesn't have a maximum size listed then false is returned. Otherwise true is returned and the max pointer is filled in with the specified maximum size, in pages.Note that this function is preferred over wasm_memorytype_limits for compatibility with the memory64 proposal.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_memorytype_maximum", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_memorytype_maximum(wasm_memorytype_t* ty, ulong* max);
+
+        /// <summary>
+        /// Returns whether this type of memory represents a 64-bit memory.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_memorytype_is64", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_memorytype_is64(wasm_memorytype_t* ty);
+
+        /// <summary>
+        /// Returns whether this type of memory represents a shared memory.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_memorytype_isshared", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_memorytype_isshared(wasm_memorytype_t* ty);
+
+        /// <summary>
+        /// Returns the page size, in bytes, of this memory type.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_memorytype_page_size", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern ulong wasmtime_memorytype_page_size(wasm_memorytype_t* ty);
+
+        /// <summary>
+        /// Returns the log2 of this memory type's page size, in bytes.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_memorytype_page_size_log2", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern byte wasmtime_memorytype_page_size_log2(wasm_memorytype_t* ty);
+
+        /// <summary>
+        /// Creates a new WebAssembly linear memory.
+        ///
+        /// storethe store to create the memory within tythe type of the memory to create retwhere to store the returned memory
+        /// If an error happens when creating the memory it's returned and owned by the caller. If an error happens then ret is not filled in.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_memory_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_memory_new(wasmtime_context* store, wasm_memorytype_t* ty, wasmtime_memory* ret);
+
+        /// <summary>
+        /// Returns the type of the memory specified.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_memory_type", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasm_memorytype_t* wasmtime_memory_type(wasmtime_context* store, wasmtime_memory* memory);
+
+        /// <summary>
+        /// Returns the base pointer in memory where the linear memory starts.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_memory_data", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern byte* wasmtime_memory_data(wasmtime_context* store, wasmtime_memory* memory);
+
+        /// <summary>
+        /// Returns the byte length of this linear memory.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_memory_data_size", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern nuint wasmtime_memory_data_size(wasmtime_context* store, wasmtime_memory* memory);
+
+        /// <summary>
+        /// Returns the length, in WebAssembly pages, of this linear memory.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_memory_size", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern ulong wasmtime_memory_size(wasmtime_context* store, wasmtime_memory* memory);
+
+        /// <summary>
+        /// Attempts to grow the specified memory by delta pages.
+        ///
+        /// storethe store that owns memorymemorythe memory to grow deltathe number of pages to grow by prev_sizewhere to store the previous size of memory
+        /// If memory cannot be grown then prev_size is left unchanged and an error is returned. Otherwise prev_size is set to the previous size of the memory, in WebAssembly pages, and NULL is returned.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_memory_grow", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_memory_grow(wasmtime_context* store, wasmtime_memory* memory, ulong delta, ulong* prev_size);
+
+        /// <summary>
+        /// Returns the size of a page, in bytes, for this memory.
+        ///
+        /// storethe store that owns memorymemorythe memory to get the page size of
+        /// WebAssembly memories are made up of a whole number of pages, so the byte size (as returned by wasmtime_memory_data_size) will always be a multiple of their page size. Different Wasm memories may have different page sizes.By default this is 64KiB (aka 0x10000, 2**16, 1<<16, or 65536) but the custom-page-sizes proposal allows opting into a page size of 1. Future extensions might allow any power of two as a page size.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_memory_page_size", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern ulong wasmtime_memory_page_size(wasmtime_context* store, wasmtime_memory* memory);
+
+        /// <summary>
+        /// Returns the log2 of this memory's page size, in bytes.
+        ///
+        /// storethe store that owns memorymemorythe memory to get the page size of
+        /// WebAssembly memories are made up of a whole number of pages, so the byte size (as returned by wasmtime_memory_data_size) will always be a multiple of their page size. Different Wasm memories may have different page sizes.By default the page size is 64KiB (aka 0x10000, 2**16, 1<<16, or 65536) but the custom-page-sizes proposal allows opting into a page size of 1. Future extensions might allow any power of two as a page size.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_memory_page_size_log2", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern byte wasmtime_memory_page_size_log2(wasmtime_context* store, wasmtime_memory* memory);
+
+        /// <summary>
+        /// Deletes profiler without finishing it.
+        ///
+        /// guestprofilerprofiler that is being deleted
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_guestprofiler_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_guestprofiler_delete(wasmtime_guestprofiler* guestprofiler);
+
+        /// <summary>
+        /// Begin profiling a new guest.
+        ///
+        /// engineengine in which to perform the profiling module_namename recorded in the profile interval_nanosintended sampling interval in nanoseconds recorded in the profile modulesmodules and associated names that will appear in captured stack traces, pointer to the first element modules_lencount of elements in modulesCreated profiler that is owned by the caller.
+        /// This function does not take ownership of the arguments.For more information see the Rust documentation at: https://docs.wasmtime.dev/api/wasmtime/struct.GuestProfiler.html#method.new
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_guestprofiler_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_guestprofiler* wasmtime_guestprofiler_new(wasm_engine_t* engine, wasm_byte_vec_t* module_name, ulong interval_nanos, wasmtime_guestprofiler_modules* modules, nuint modules_len);
+
+        /// <summary>
+        /// Add a sample to the profile.
+        ///
+        /// guestprofilerthe profiler the sample is being added to storestore that is being used to collect the backtraces delta_nanosCPU time in nanoseconds that was used by this guest since the previous sample
+        /// Zero can be passed as delta_nanos if recording CPU usage information is not needed. This function does not take ownership of the arguments.For more information see the Rust documentation at: https://docs.wasmtime.dev/api/wasmtime/struct.GuestProfiler.html#method.sample
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_guestprofiler_sample", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_guestprofiler_sample(wasmtime_guestprofiler* guestprofiler, wasmtime_store* store, ulong delta_nanos);
+
+        /// <summary>
+        /// Writes out the captured profile.
+        ///
+        /// guestprofilerthe profiler which is being finished and deleted outpointer to where wasm_byte_vec_t containing generated file will be writtenReturns wasmtime_error_t owned by the caller in case of error, NULL otherwise.
+        /// This function takes ownership of guestprofiler, even when error is returned. Only when returning without error out is filled with wasm_byte_vec_t owned by the caller.For more information see the Rust documentation at: https://docs.wasmtime.dev/api/wasmtime/struct.GuestProfiler.html#method.finish
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_guestprofiler_finish", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_guestprofiler_finish(wasmtime_guestprofiler* guestprofiler, wasm_byte_vec_t* @out);
+
+        /// <summary>
+        /// Create a new struct pre-allocator.
+        ///
+        /// contextThe store context. tyThe struct type.Returns a new struct ref pre-allocator.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_struct_ref_pre_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_struct_ref_pre* wasmtime_struct_ref_pre_new(wasmtime_context* context, wasmtime_struct_type* ty);
+
+        /// <summary>
+        /// Delete a struct pre-allocator.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_struct_ref_pre_delete", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_struct_ref_pre_delete(wasmtime_struct_ref_pre* pre);
+
+        /// <summary>
+        /// Allocate a new struct instance.
+        ///
+        /// contextThe store context. preThe struct pre-allocator. fieldsPointer to array of field values (wasmtime_val_t). nfieldsNumber of fields (must match the struct type). outReceives the new structref on success.NULL on success, or a wasmtime_error_t on failure.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_structref_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_structref_new(wasmtime_context* context, wasmtime_struct_ref_pre* pre, wasmtime_val* fields, nuint nfields, wasmtime_structref* @out);
+
+        /// <summary>
+        /// Clone a structref, creating a new root.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_structref_clone", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_structref_clone(wasmtime_structref* structref, wasmtime_structref* @out);
+
+        /// <summary>
+        /// Unroot a structref to allow garbage collection.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_structref_unroot", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_structref_unroot(wasmtime_structref* ref_);
+
+        /// <summary>
+        /// Upcast a structref to an anyref.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_structref_to_anyref", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_structref_to_anyref(wasmtime_structref* structref, wasmtime_anyref* @out);
+
+        /// <summary>
+        /// Upcast a structref to an eqref.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_structref_to_eqref", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void wasmtime_structref_to_eqref(wasmtime_structref* structref, wasmtime_eqref* @out);
+
+        /// <summary>
+        /// Read a field from a struct.
+        ///
+        /// contextThe store context. structrefThe struct to read from (not consumed). indexThe field index. outReceives the field value on success.NULL on success, or a wasmtime_error_t on failure.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_structref_field", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_structref_field(wasmtime_context* context, wasmtime_structref* structref, nuint index, wasmtime_val* @out);
+
+        /// <summary>
+        /// Set a field of a struct.
+        ///
+        /// contextThe store context. structrefThe struct to write to (not consumed). indexThe field index. valThe value to write (not consumed; caller must still unroot if applicable).NULL on success, or a wasmtime_error_t on failure.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_structref_set_field", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_structref_set_field(wasmtime_context* context, wasmtime_structref* structref, nuint index, wasmtime_val* val);
+
+        /// <summary>
+        /// Returns the type of the specified structref.
+        ///
+        /// If structref is NULL or represents ref.null struct, then NULL is returned. Otherwise the type of this value is returned. Callers must delete the returned value.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_structref_type", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_struct_type* wasmtime_structref_type(wasmtime_context* context, wasmtime_structref* structref);
+
+        /// <summary>
+        /// Creates a new host-defined wasm table.
+        ///
+        /// storethe store to create the table within tythe type of the table to create initthe initial value for this table's elements tablewhere to store the returned table
+        /// This function does not take ownership of any of its parameters, but yields ownership of returned error. This function may return an error if the init value does not match ty, for example.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_table_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_table_new(wasmtime_context* store, wasm_tabletype_t* ty, wasmtime_val* init, wasmtime_table* table);
+
+        /// <summary>
+        /// Returns the type of this table.
+        ///
+        /// The caller has ownership of the returned wasm_tabletype_t
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_table_type", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasm_tabletype_t* wasmtime_table_type(wasmtime_context* store, wasmtime_table* table);
+
+        /// <summary>
+        /// Gets a value in a table.
+        ///
+        /// storethe store that owns tabletablethe table to access indexthe table index to access valwhere to store the table's value
+        /// This function will attempt to access a table element. If a nonzero value is returned then val is filled in and is owned by the caller. Otherwise zero is returned because the index is out-of-bounds.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_table_get", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_table_get(wasmtime_context* store, wasmtime_table* table, ulong index, wasmtime_val* val);
+
+        /// <summary>
+        /// Sets a value in a table.
+        ///
+        /// storethe store that owns tabletablethe table to write to indexthe table index to write valuethe value to store.
+        /// This function will store value into the specified index in the table. This does not take ownership of any argument but yields ownership of the error. This function can fail if value has the wrong type for the table, or if index is out of bounds.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_table_set", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_table_set(wasmtime_context* store, wasmtime_table* table, ulong index, wasmtime_val* value);
+
+        /// <summary>
+        /// Returns the size, in elements, of the specified table.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_table_size", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern ulong wasmtime_table_size(wasmtime_context* store, wasmtime_table* table);
+
+        /// <summary>
+        /// Grows a table.
+        ///
+        /// storethe store that owns tabletablethe table to grow deltathe number of elements to grow the table by initthe initial value for new table element slots prev_sizewhere to store the previous size of the table before growth
+        /// This function will attempt to grow the table by delta table elements. This can fail if delta would exceed the maximum size of the table or if init is the wrong type for this table. If growth is successful then NULL is returned and prev_size is filled in with the previous size of the table, in elements, before the growth happened.This function does not take ownership of any of its arguments.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_table_grow", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasmtime_error* wasmtime_table_grow(wasmtime_context* store, wasmtime_table* table, ulong delta, wasmtime_val* init, ulong* prev_size);
+
+        /// <summary>
+        /// Creates a new trap with the given message.
+        ///
+        /// msgthe message to associate with this trap msg_lenthe byte length of msg
+        /// The wasm_trap_t returned is owned by the caller.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_trap_new", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasm_trap_t* wasmtime_trap_new(byte* msg, nuint msg_len);
+
+        /// <summary>
+        /// Creates a new trap from the given trap code.
+        ///
+        /// codethe trap code to associate with this trap
+        /// The wasm_trap_t returned is owned by the caller.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_trap_new_code", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasm_trap_t* wasmtime_trap_new_code(byte code);
+
+        /// <summary>
+        /// Attempts to extract the trap code from this trap.
+        ///
+        /// Returns true if the trap is an instruction trap triggered while executing Wasm. If true is returned then the trap code is returned through the code pointer. If false is returned then this is not an instruction trap  traps can also be created using wasm_trap_new, or occur with WASI modules exiting with a certain exit code.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_trap_code", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        internal static extern bool wasmtime_trap_code(wasm_trap_t* arg1, byte* code);
+
+        /// <summary>
+        /// Returns a human-readable name for this frame's function.
+        ///
+        /// This function will attempt to load a human-readable name for function this frame points to. This function may return NULL.The lifetime of the returned name is the same as the wasm_frame_t itself.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_frame_func_name", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasm_byte_vec_t* wasmtime_frame_func_name(wasm_frame_t* arg1);
+
+        /// <summary>
+        /// Returns a human-readable name for this frame's module.
+        ///
+        /// This function will attempt to load a human-readable name for module this frame points to. This function may return NULL.The lifetime of the returned name is the same as the wasm_frame_t itself.
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "wasmtime_frame_module_name", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern wasm_byte_vec_t* wasmtime_frame_module_name(wasm_frame_t* arg1);
 
         /// <summary>
         /// Converts from the text format of WebAssembly to the binary format.
@@ -5832,56 +6055,115 @@ namespace Wasmtime.Native
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    internal unsafe partial struct wasmtime_storage_type
+    {
+        /// <summary>
+        /// The kind of storage type this is.
+        /// </summary>
+        public byte kind;
+        /// <summary>
+        /// if kind is WASMTIME_STORAGE_TYPE_KIND_VALTYPE, then this is set.
+        /// </summary>
+        public wasm_valtype_t* valtype;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe partial struct wasmtime_field_type
+    {
+        /// <summary>
+        /// Whether this field is mutable. true for mutable, false for immutable.
+        /// </summary>
+        [MarshalAs(UnmanagedType.U1)] public bool mutable_;
+        /// <summary>
+        /// The type stored in this field.
+        /// </summary>
+        public wasmtime_storage_type storage;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe partial struct wasmtime_struct_type
+    {
+        public fixed byte _unused[1];
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe partial struct wasmtime_array_type
+    {
+        public fixed byte _unused[1];
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     internal unsafe partial struct wasmtime_error
     {
         public fixed byte _unused[1];
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal unsafe partial struct wasmtime_linear_memory
+    internal unsafe partial struct wasmtime_exn_type
     {
-        /// <summary>
-        /// User provided value to be passed to get_memory and grow_memory.
-        /// </summary>
-        public void* env;
-        /// <summary>
-        /// Callback to get the memory and size of this LinearMemory.
-        /// </summary>
-        public delegate* unmanaged[Cdecl]<void*, nuint*, nuint*, byte*> get_memory;
-        /// <summary>
-        /// Callback to request growing the memory.
-        /// </summary>
-        public delegate* unmanaged[Cdecl]<void*, nuint, wasmtime_error*> grow_memory;
-        /// <summary>
-        /// An optional finalizer for env.
-        /// </summary>
-        public delegate* unmanaged[Cdecl]<void*, void> finalizer;
+        public fixed byte _unused[1];
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    internal unsafe partial struct wasmtime_heaptype_union
+    {
+        [FieldOffset(0)]
+        public wasm_functype_t* concrete_func;
+        [FieldOffset(0)]
+        public wasmtime_array_type* concrete_array;
+        [FieldOffset(0)]
+        public wasmtime_struct_type* concrete_struct;
+        [FieldOffset(0)]
+        public wasmtime_exn_type* concrete_exn;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal unsafe partial struct wasmtime_memory_creator
+    internal unsafe partial struct wasmtime_heaptype
     {
         /// <summary>
-        /// User provided value to be passed to new_memory.
+        /// Discriminant of which heap type this is, and may indicate fields of of to use.
         /// </summary>
-        public void* env;
+        public byte kind;
         /// <summary>
-        /// The callback to create new memory, must be thread safe.
+        /// Payload of this heap type, with fields indicated by kind.
         /// </summary>
-        public delegate* unmanaged[Cdecl]<void*, wasm_memorytype_t*, nuint, nuint, nuint, nuint, wasmtime_linear_memory*, wasmtime_error*> new_memory;
-        /// <summary>
-        /// An optional finalizer for env.
-        /// </summary>
-        public delegate* unmanaged[Cdecl]<void*, void> finalizer;
+        public wasmtime_heaptype_union of;
     }
 
-    /// <summary>
-    /// A type containing configuration options for the pooling allocator.
-    ///
-    /// For more information see the Rust documentation at https://docs.wasmtime.dev/api/wasmtime/struct.PoolingAllocationConfig.html
-    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal unsafe partial struct wasmtime_pooling_allocation_config_t
+    internal unsafe partial struct wasmtime_reftype
+    {
+        /// <summary>
+        /// Whether this reference type is nullable.
+        /// </summary>
+        [MarshalAs(UnmanagedType.U1)] public bool nullable;
+        /// <summary>
+        /// The heap type of this reference type.
+        /// </summary>
+        public wasmtime_heaptype heaptype;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe partial struct wasmtime_valtype
+    {
+        /// <summary>
+        /// Discriminant of which value type this is.
+        /// </summary>
+        public byte kind;
+        /// <summary>
+        /// Payload of this value type, only used with WASMTIME_VALTYPE_KIND_REF.
+        /// </summary>
+        public wasmtime_reftype reftype;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe partial struct wasmtime_module
+    {
+        public fixed byte _unused[1];
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe partial struct wasmtime_sharedmemory
     {
         public fixed byte _unused[1];
     }
@@ -5913,18 +6195,6 @@ namespace Wasmtime.Native
     {
         public ulong store_id;
         public uint __private1;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal unsafe partial struct wasmtime_module
-    {
-        public fixed byte _unused[1];
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal unsafe partial struct wasmtime_sharedmemory
-    {
-        public fixed byte _unused[1];
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -6041,6 +6311,27 @@ namespace Wasmtime.Native
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    internal unsafe partial struct wasmtime_exnref
+    {
+        /// <summary>
+        /// Internal metadata tracking within the store, embedders should not configure or modify these fields.
+        /// </summary>
+        public ulong store_id;
+        /// <summary>
+        /// Internal to Wasmtime.
+        /// </summary>
+        public uint __private1;
+        /// <summary>
+        /// Internal to Wasmtime.
+        /// </summary>
+        public uint __private2;
+        /// <summary>
+        /// Internal to Wasmtime.
+        /// </summary>
+        public void* __private3;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     internal unsafe partial struct wasmtime_externref
     {
         /// <summary>
@@ -6062,10 +6353,52 @@ namespace Wasmtime.Native
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal unsafe partial struct wasmtime_exnref
+    internal unsafe partial struct wasmtime_eqref
     {
         /// <summary>
         /// Internal metadata tracking within the store, embedders should not configure or modify these fields.
+        /// </summary>
+        public ulong store_id;
+        /// <summary>
+        /// Internal to Wasmtime.
+        /// </summary>
+        public uint __private1;
+        /// <summary>
+        /// Internal to Wasmtime.
+        /// </summary>
+        public uint __private2;
+        /// <summary>
+        /// Internal to Wasmtime.
+        /// </summary>
+        public void* __private3;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe partial struct wasmtime_structref
+    {
+        /// <summary>
+        /// Internal metadata.
+        /// </summary>
+        public ulong store_id;
+        /// <summary>
+        /// Internal to Wasmtime.
+        /// </summary>
+        public uint __private1;
+        /// <summary>
+        /// Internal to Wasmtime.
+        /// </summary>
+        public uint __private2;
+        /// <summary>
+        /// Internal to Wasmtime.
+        /// </summary>
+        public void* __private3;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe partial struct wasmtime_arrayref
+    {
+        /// <summary>
+        /// Internal metadata.
         /// </summary>
         public ulong store_id;
         /// <summary>
@@ -6123,6 +6456,8 @@ namespace Wasmtime.Native
         [FieldOffset(0)]
         public uint externref;
         [FieldOffset(0)]
+        public uint exnref;
+        [FieldOffset(0)]
         public void* funcref;
     }
 
@@ -6134,7 +6469,56 @@ namespace Wasmtime.Native
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal unsafe partial struct wasmtime_exn
+    internal unsafe partial struct wasmtime_array_ref_pre
+    {
+        public fixed byte _unused[1];
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe partial struct wasmtime_linear_memory
+    {
+        /// <summary>
+        /// User provided value to be passed to get_memory and grow_memory.
+        /// </summary>
+        public void* env;
+        /// <summary>
+        /// Callback to get the memory and size of this LinearMemory.
+        /// </summary>
+        public delegate* unmanaged[Cdecl]<void*, nuint*, nuint*, byte*> get_memory;
+        /// <summary>
+        /// Callback to request growing the memory.
+        /// </summary>
+        public delegate* unmanaged[Cdecl]<void*, nuint, wasmtime_error*> grow_memory;
+        /// <summary>
+        /// An optional finalizer for env.
+        /// </summary>
+        public delegate* unmanaged[Cdecl]<void*, void> finalizer;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe partial struct wasmtime_memory_creator
+    {
+        /// <summary>
+        /// User provided value to be passed to new_memory.
+        /// </summary>
+        public void* env;
+        /// <summary>
+        /// The callback to create new memory, must be thread safe.
+        /// </summary>
+        public delegate* unmanaged[Cdecl]<void*, wasm_memorytype_t*, nuint, nuint, nuint, nuint, wasmtime_linear_memory*, wasmtime_error*> new_memory;
+        /// <summary>
+        /// An optional finalizer for env.
+        /// </summary>
+        public delegate* unmanaged[Cdecl]<void*, void> finalizer;
+    }
+
+    /// <summary>
+    /// A type containing configuration options for the pooling allocator.
+    ///
+    /// For more information see the Rust documentation at https://docs.wasmtime.dev/api/wasmtime/struct.PoolingAllocationConfig.html
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe partial struct wasmtime_pooling_allocation_config_t
     {
         public fixed byte _unused[1];
     }
@@ -6168,122 +6552,6 @@ namespace Wasmtime.Native
     internal unsafe partial struct wasmtime_linker
     {
         public fixed byte _unused[1];
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal unsafe partial struct wasmtime_guestprofiler
-    {
-        public fixed byte _unused[1];
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal unsafe partial struct wasmtime_guestprofiler_modules
-    {
-        /// <summary>
-        /// Name recorded in the profile.
-        /// </summary>
-        public wasm_byte_vec_t* name;
-        public wasmtime_module* mod_;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal unsafe partial struct wasmtime_eqref
-    {
-        /// <summary>
-        /// Internal metadata tracking within the store, embedders should not configure or modify these fields.
-        /// </summary>
-        public ulong store_id;
-        /// <summary>
-        /// Internal to Wasmtime.
-        /// </summary>
-        public uint __private1;
-        /// <summary>
-        /// Internal to Wasmtime.
-        /// </summary>
-        public uint __private2;
-        /// <summary>
-        /// Internal to Wasmtime.
-        /// </summary>
-        public void* __private3;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal unsafe partial struct wasmtime_field_type
-    {
-        /// <summary>
-        /// The storage type of this field. Use WASMTIME_I32, WASMTIME_I64, WASMTIME_F32, etc. for value types, or WASMTIME_STORAGE_KIND_I8 / WASMTIME_STORAGE_KIND_I16 for packed types.
-        /// </summary>
-        public byte kind;
-        /// <summary>
-        /// Whether this field is mutable. true for mutable, false for immutable.
-        /// </summary>
-        [MarshalAs(UnmanagedType.U1)] public bool mutable_;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal unsafe partial struct wasmtime_struct_type
-    {
-        public fixed byte _unused[1];
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal unsafe partial struct wasmtime_struct_ref_pre
-    {
-        public fixed byte _unused[1];
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal unsafe partial struct wasmtime_structref
-    {
-        /// <summary>
-        /// Internal metadata.
-        /// </summary>
-        public ulong store_id;
-        /// <summary>
-        /// Internal to Wasmtime.
-        /// </summary>
-        public uint __private1;
-        /// <summary>
-        /// Internal to Wasmtime.
-        /// </summary>
-        public uint __private2;
-        /// <summary>
-        /// Internal to Wasmtime.
-        /// </summary>
-        public void* __private3;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal unsafe partial struct wasmtime_array_type
-    {
-        public fixed byte _unused[1];
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal unsafe partial struct wasmtime_array_ref_pre
-    {
-        public fixed byte _unused[1];
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal unsafe partial struct wasmtime_arrayref
-    {
-        /// <summary>
-        /// Internal metadata.
-        /// </summary>
-        public ulong store_id;
-        /// <summary>
-        /// Internal to Wasmtime.
-        /// </summary>
-        public uint __private1;
-        /// <summary>
-        /// Internal to Wasmtime.
-        /// </summary>
-        public uint __private2;
-        /// <summary>
-        /// Internal to Wasmtime.
-        /// </summary>
-        public void* __private3;
     }
 
     /// <summary>
@@ -6785,6 +7053,28 @@ namespace Wasmtime.Native
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     internal unsafe partial struct wasmtime_component_linker_instance_t
+    {
+        public fixed byte _unused[1];
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe partial struct wasmtime_guestprofiler
+    {
+        public fixed byte _unused[1];
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe partial struct wasmtime_guestprofiler_modules
+    {
+        /// <summary>
+        /// Name recorded in the profile.
+        /// </summary>
+        public wasm_byte_vec_t* name;
+        public wasmtime_module* mod_;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe partial struct wasmtime_struct_ref_pre
     {
         public fixed byte _unused[1];
     }
